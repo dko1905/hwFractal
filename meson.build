@@ -1,0 +1,17 @@
+project(
+	'hwfractal',
+	'cpp',
+	license: 'GPL-3.0-or-later',
+	default_options: [
+		'cpp_std=c++17',
+		'warning_level=1',
+		'werror=false'
+	],
+)
+
+glfw = dependency('glfw3', version: '>= 3')
+glew = dependency('glew')
+glm = dependency('glm')
+
+
+
