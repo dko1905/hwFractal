@@ -17,7 +17,8 @@ There should be a binary in `builddir/` called hwfractal. Just run it.
 
 ## Todo
 - [X] Write README.md.
-- [ ] Basic project structure, including build system.
+- [X] Basic project structure, including build system.
+- [ ] Create GLFW window.
 - [ ] ...
 
 ## License

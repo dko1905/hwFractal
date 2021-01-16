@@ -14,4 +14,14 @@ glew = dependency('glew')
 glm = dependency('glm')
 
 
-
+executable(
+	'hwfractal',
+	[
+		'src/main.cpp',
+		'src/application.cpp',
+		'src/exceptions/runtime_exception.cpp'
+	],
+	dependencies: [
+		glfw, glew, glm
+	]
+)
