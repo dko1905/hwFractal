@@ -3,12 +3,6 @@
 #include <memory>
 #include <iostream>
 
-extern "C" {
-	#include <GL/glew.h>
-	#include <GLFW/glfw3.h>
-}
-#include <glm/glm.hpp>
-
 #include "exceptions/runtime_exception.hpp"
 #include "shader_loader.hpp"
 #include "util/config.hpp"

@@ -6,6 +6,7 @@
 
 #include "application.hpp"
 #include "util/config.hpp"
+#include "util/printer.hpp"
 
 using namespace hwfractal;
 
@@ -16,7 +17,17 @@ int main(int argc, char *argv[]) {
 		auto conf = std::make_shared<config>("resources/config.conf");
 		application app(conf);
 
-		std::cout << *argv << ": Program successfull." << std::endl;
+		/* Setup static printer class. */
+		if (conf->get("PRINTER_SHOW_DEBUG") == "YES") {
+			printer::show_debug = true;
+		} else {
+			printer::show_info = false;
+		}
+		if (conf->get("PRINTER_SHOW_INFO") == "YES") {
+			printer::show_debug = true;
+		} else {
+			printer::show_info = false;
+		}
 	} catch (const std::exception &exception) {
 		std::cerr << *argv << ": Caught: " << exception.what() << std::endl;
 		status = EXIT_FAILURE;
