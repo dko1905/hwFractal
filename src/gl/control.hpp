@@ -8,6 +8,7 @@ extern "C" {
 }
 
 #include "../util/config.hpp"
+#include "../keybind.hpp"
 
 namespace hwfractal {
 	namespace gl {
@@ -26,9 +27,14 @@ namespace hwfractal {
 			unsigned int _vertex_array_id;
 			unsigned int _vertexbuffer;
 			unsigned int _program_id;
-			
+
+			std::map<keybind, bool> _keysdown;
 		public:
 			control(const std::shared_ptr<config> &config);
+			~control();
+			void render() const;
+			void poll() const;
+			const bool &keydown(const keybind &key) const;
 		};
 	}
 }

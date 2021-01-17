@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "application.hpp"
+#include "exceptions/runtime_exception.hpp"
 #include "util/config.hpp"
 #include "util/printer.hpp"
 
@@ -28,13 +29,10 @@ int main(int argc, char *argv[]) {
 		} else {
 			printer::show_info = false;
 		}
-	} catch (const std::exception &exception) {
+	} catch (const runtime_exception &exception) {
 		std::cerr << *argv << ": Caught: " << exception.what() << std::endl;
 		status = EXIT_FAILURE;
-	} catch(...) {
-		std::cerr << *argv << ": Caught unknown exception" << std::endl;
-		status = EXIT_FAILURE;
-	}
+	} 
 	
 	return status;
 }
