@@ -1,19 +1,23 @@
-#include <cstdlib>
 #include <exception>
 #include <iostream>
 #include <vector>
 #include <string>
+#include <thread>
 
 #include "application.hpp"
 
 using namespace hwfractal;
 
 int main(int argc, char *argv[]) {
-	application *app = NULL;
+	
 	int status = EXIT_SUCCESS;
 
 	try {
-		app = new application();
+		application app;
+
+		app.init();
+
+		app.loop();
 
 		std::cout << *argv << ": Program successfull." << std::endl;
 	} catch (const std::exception &exception) {
@@ -23,7 +27,6 @@ int main(int argc, char *argv[]) {
 		std::cerr << *argv << ": Caught unknown exception" << std::endl;
 		status = EXIT_FAILURE;
 	}
-	delete app;
 	
 	return status;
 }

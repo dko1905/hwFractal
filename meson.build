@@ -12,6 +12,7 @@ project(
 glfw = dependency('glfw3', version: '>= 3')
 glew = dependency('glew')
 glm = dependency('glm')
+threads = dependency('threads')
 
 
 executable(
@@ -19,9 +20,10 @@ executable(
 	[
 		'src/main.cpp',
 		'src/application.cpp',
-		'src/exceptions/runtime_exception.cpp'
+		'src/exceptions/runtime_exception.cpp',
+		'src/shader_loader.cpp'
 	],
 	dependencies: [
-		glfw, glew, glm
+		glfw, glew, glm, threads
 	]
 )
