@@ -21,7 +21,8 @@ executable(
 		'src/main.cpp',
 		'src/application.cpp',
 		'src/exceptions/runtime_exception.cpp',
-		'src/shader_loader.cpp'
+		'src/util/config.cpp',
+		'src/gl/control.cpp'
 	],
 	dependencies: [
 		glfw, glew, glm, threads

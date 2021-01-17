@@ -2,22 +2,19 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <thread>
+#include <memory>
 
 #include "application.hpp"
+#include "util/config.hpp"
 
 using namespace hwfractal;
 
-int main(int argc, char *argv[]) {
-	
+int main(int argc, char *argv[]) {	
 	int status = EXIT_SUCCESS;
 
 	try {
-		application app;
-
-		app.init();
-
-		app.loop();
+		auto conf = std::make_shared<config>("resources/config.conf");
+		application app(conf);
 
 		std::cout << *argv << ": Program successfull." << std::endl;
 	} catch (const std::exception &exception) {

@@ -1,22 +1,27 @@
-#include <iostream>
-
 #include "application.hpp"
 
 using namespace hwfractal;
 
+application::application(const std::shared_ptr<config> &config) {
+	this->_config = config;
+
+	this->_gl_control = std::move(std::make_unique<gl::control>(config));
+}
+
+/*
 void application::init() {
 	glewExperimental = GL_TRUE;
 	if (!glfwInit()) {
 		throw runtime_exception("Failed to initialize GLFW.");
 	}
-	glfwWindowHint(GLFW_SAMPLES, 4); /* 4x antialiasing. */
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); /* We want at least 4.0. */
+	glfwWindowHint(GLFW_SAMPLES, 4); ///* 4x antialiasing. 
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); ///* We want at least 4.0. 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); /* Make MacOS happy.*/
-	/* We don't want old OpenGL. */
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); ///* Make MacOS happy.
+	///* We don't want old OpenGL. 
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	/* Create window. */
+	// Create window. 
 	auto window = glfwCreateWindow(640, 480, "hwfractal", NULL, NULL);
 	if (window == NULL) {
 		glfwTerminate();
@@ -24,25 +29,25 @@ void application::init() {
 	}
 	this->_window = window;
 
-	/* Initialize GLEW. */
+	///* Initialize GLEW. 
 	glfwMakeContextCurrent(window);
 	glewExperimental = GL_TRUE;
 
 	if (glewInit() != GLEW_OK) {
-		glfwTerminate(); /* Should maybe be there? */
+		glfwTerminate(); ///* Should maybe be there? 
 		throw runtime_exception("Failed to initialize GLEW.");
 	}
 
-	/* VAO. */
+	///* VAO.
 	glGenVertexArrays(1, &this->_vertex_array_id);
 	glBindVertexArray(this->_vertex_array_id);
 
-	/* Setup vertexbuffer. */
+	///* Setup vertexbuffer. 
 	glGenBuffers(1, &this->_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, this->_vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(hwfractal::vertexbuffer_triangle_buffer), hwfractal::vertexbuffer_triangle_buffer, GL_STATIC_DRAW);
 
-	/* Catch "all" keys. */
+	///* Catch "all" keys. 
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
 	sl.init("resources/test.vs", "resources/test.fs");
@@ -75,3 +80,4 @@ void application::loop() {
 		glfwWindowShouldClose(this->_window) == 0
 	);
 }
+*/
