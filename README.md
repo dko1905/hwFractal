@@ -1,8 +1,12 @@
 # HardWare accelerated Fractals
-Currently WIP.
+There are currently two branches, C and C++. Why, I wanted to compare what it
+feels like writing the program in C and in C++. I am now pretty sure I won't
+commit to the C++ branch, since it's so hard. I'm tearing my hair out, when
+I'm writing C++.
 
 ## Compiling & running
 ### Dependencies
+These dependencies don't include meson, which is our build system.
 | OS / Distro       | Package names                         |
 |-------------------|---------------------------------------|
 | Void Linux        | glfw-devel, glm, glew-devel           |
