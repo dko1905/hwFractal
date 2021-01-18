@@ -2,12 +2,8 @@
 #define GL_CONTROL_HPP
 #include <memory>
 
-extern "C" {
-	#include <GL/glew.h>
-	#include <GLFW/glfw3.h>
-}
-
-#include "../util/config.hpp"
+#include "gl.hpp"
+#include "util/config.hpp"
 
 namespace hwfractal {
 	namespace gl {
@@ -21,14 +17,14 @@ namespace hwfractal {
 		 */
 		class control {
 		private:
-			std::shared_ptr<config> _config;
+			std::shared_ptr<const config> _config;
 			GLFWwindow *_window = NULL;
 			GLuint _vertex_array_id = 0;
 			GLuint _vertexbuffer = 0;
 			GLuint _program_id = 0;
 			
 		public:
-			control(const std::shared_ptr<config> &config);
+			control(const std::shared_ptr<const config> &config);
 			~control();
 			void render() const;
 			int poll() const;

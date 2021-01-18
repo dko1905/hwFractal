@@ -1,12 +1,8 @@
 #ifndef GL_SHADERS_HPP
 #define GL_SHADERS_HPP
-#include <sstream>
 #include <string>
-#include <thread>
-#include <fstream>
 
-#include <vector>
-#include <iostream>
+#include "gl.hpp"
 
 namespace hwfractal {
 	namespace gl {

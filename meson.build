@@ -27,5 +27,8 @@ executable(
 	],
 	dependencies: [
 		glfw, glew, glm, threads
+	],
+	include_directories: [
+		'src'
 	]
 )

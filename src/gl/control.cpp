@@ -1,25 +1,16 @@
-#include "control.hpp"
 #include <memory>
-
-extern "C" {
-	#include <GL/glew.h>
-	#include <GLFW/glfw3.h>
-}
-#include <glm/glm.hpp>
-#include <cstdlib>
-
-#include "../exceptions/runtime_exception.hpp"
-#include "../util/printer.hpp"
-#include "shaders.hpp"
 #include <iostream>
+
+#include "exceptions/runtime_exception.hpp"
+#include "util/printer.hpp"
+#include "shaders.hpp"
+
+#include "control.hpp"
 
 using namespace hwfractal::gl;
 
-/* Pointers. */
-static void *global_keyconfig;
-static void *global_keysdown;
 
-control::control(const std::shared_ptr<config> &config) {
+control::control(const std::shared_ptr<const config> &config) {
 	this->_config = config;
 
 	glewExperimental = true; /* Needed for core profile. */

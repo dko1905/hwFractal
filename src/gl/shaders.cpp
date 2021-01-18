@@ -1,11 +1,9 @@
-extern "C" {
-	#include <GL/glew.h>
-	#include <GLFW/glfw3.h>
-}
-#include <glm/glm.hpp>
+#include <sstream>
+#include <fstream>
+#include <vector>
 
-#include "../exceptions/runtime_exception.hpp"
-#include "../util/printer.hpp"
+#include "exceptions/runtime_exception.hpp"
+#include "util/printer.hpp"
 
 #include "shaders.hpp"
 
