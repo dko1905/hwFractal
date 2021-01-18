@@ -1,8 +1,7 @@
 # HardWare accelerated Fractals
 There are currently two branches, C and C++. Why, I wanted to compare what it
-feels like writing the program in C and in C++. I am now pretty sure I won't
-commit to the C++ branch, since it's so hard. I'm tearing my hair out, when
-I'm writing C++.
+feels like writing the program in C and in C++. Currently only C++ is
+implemented.
 
 ## Compiling & running
 ### Dependencies
