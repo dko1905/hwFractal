@@ -22,7 +22,8 @@ executable(
 		'src/exceptions/runtime_exception.cpp',
 		'src/util/config.cpp',
 		'src/util/printer.cpp',
-		'src/gl/control.cpp',
+		'src/interfaces/core_controller.cpp',
+		'src/gl/gl_controller.cpp',
 		'src/gl/shaders.cpp'
 	],
 	dependencies: [

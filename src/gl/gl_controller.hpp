@@ -4,6 +4,7 @@
 
 #include "gl.hpp"
 #include "util/config.hpp"
+#include "interfaces/core_controller.hpp"
 
 namespace hwfractal {
 	namespace gl {
@@ -12,22 +13,18 @@ namespace hwfractal {
 			1.0f, -1.0f, 0.0f,
 			0.0f,  1.0f, 0.0f,
 		};
-		/**
-		 * @brief `control` class controls a GLFW/GLEW backend.
-		 */
-		class control {
+		/* Control*/
+		class gl_controller : public interfaces::core_controller {
 		private:
-			std::shared_ptr<const config> _config;
 			GLFWwindow *_window = NULL;
 			GLuint _vertex_array_id = 0;
 			GLuint _vertexbuffer = 0;
 			GLuint _program_id = 0;
-			
 		public:
-			control(const std::shared_ptr<const config> &config);
-			~control();
-			void render() const;
-			int poll() const;
+			gl_controller(const std::shared_ptr<const config> &config);
+			virtual ~gl_controller();
+			virtual void render() const;
+			virtual int poll() const;
 		};
 	}
 }

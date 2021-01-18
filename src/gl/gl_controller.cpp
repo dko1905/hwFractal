@@ -2,15 +2,16 @@
 #include <iostream>
 
 #include "exceptions/runtime_exception.hpp"
+#include "interfaces/core_controller.hpp"
 #include "util/printer.hpp"
 #include "shaders.hpp"
 
-#include "control.hpp"
+#include "gl_controller.hpp"
 
-using namespace hwfractal::gl;
+using namespace hwfractal;
+using namespace gl;
 
-
-control::control(const std::shared_ptr<const config> &config) {
+gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core_controller(config) {
 	this->_config = config;
 
 	glewExperimental = true; /* Needed for core profile. */
@@ -58,7 +59,7 @@ control::control(const std::shared_ptr<const config> &config) {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(gl::vertex_buffer_data), gl::vertex_buffer_data, GL_STATIC_DRAW);
 }
 
-control::~control() {
+gl_controller::~gl_controller() {
 	/* Cleanup any resources used by OpenGL. */
 	if (this->_window != NULL) {
 		/* Remove callbacks. */
@@ -72,7 +73,7 @@ control::~control() {
 	}
 }
 
-void control::render() const {
+void gl_controller::render() const {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/* Use shader. */
@@ -98,7 +99,7 @@ void control::render() const {
 	glfwSwapBuffers(this->_window);
 }
 
-int control::poll() const {
+int gl_controller::poll() const {
 	glfwPollEvents();
 	return glfwWindowShouldClose(this->_window);
 }
