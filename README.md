@@ -29,5 +29,4 @@ There should be a binary in `builddir/` called hwfractal. Just run it.
 - [ ] ...
 
 ## License
-Free as in Freedom.
-[GPL-3.0-or-later](./LICENSE)
+Free as in Freedom. [GPL-3.0-or-later](./LICENSE)
