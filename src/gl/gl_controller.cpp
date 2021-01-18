@@ -57,6 +57,11 @@ gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core
 	glGenBuffers(1, &this->_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, this->_vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(gl::vertex_buffer_data), gl::vertex_buffer_data, GL_STATIC_DRAW);
+	/* Setup callbacks. */
+	auto resisze_lamda = [](GLFWwindow* _w, int width, int height) {
+		glViewport(0, 0, width, height);
+	};
+	glfwSetFramebufferSizeCallback(this->_window, resisze_lamda);
 }
 
 gl_controller::~gl_controller() {
@@ -91,10 +96,9 @@ void gl_controller::render() const {
 		(void*)0            // array buffer offset
 	);
 
-	/* Draw triangle. */
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-
-	glDisableVertexAttribArray(0); /* No idea what it does, DON'T REMOVE! */
+	/* Draw triangle fan. */
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glDisableVertexAttribArray(0); /* DO NOT REMOVE! */
 
 	glfwSwapBuffers(this->_window);
 }

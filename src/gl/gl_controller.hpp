@@ -9,9 +9,10 @@
 namespace hwfractal {
 	namespace gl {
 		static const float vertex_buffer_data[] = {
-			-1.0f, -1.0f, 0.0f,
-			1.0f, -1.0f, 0.0f,
-			0.0f,  1.0f, 0.0f,
+			1.f, 1.f, 0.f,
+			1.f, -1.f, 0.f,
+			-1.f, -1.f, 0.f,
+			-1.f, 1.f, 0.f
 		};
 		/* Control*/
 		class gl_controller : public interfaces::core_controller {
