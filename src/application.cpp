@@ -8,12 +8,11 @@ application::application(const std::shared_ptr<config> &config) {
 	this->_config = config;
 	this->_gl_control = std::move(std::make_unique<gl::control>(config));
 
-	this->_gl_control->render();
-	/*
+	int exit = 0;
 	do {
-		
-		pr = this->_gl_control->poll();
+		this->_gl_control->render();
+		exit = this->_gl_control->poll();
 	} while (
-		this->_gl_control->keydown(keybind::QUIT) != true && pr == 0
-	);*/
+		exit == 0
+	);
 }

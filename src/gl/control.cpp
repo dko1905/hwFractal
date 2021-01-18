@@ -10,13 +10,14 @@ extern "C" {
 
 #include "../exceptions/runtime_exception.hpp"
 #include "../util/printer.hpp"
-#include "../keybind.hpp"
 #include "shaders.hpp"
+#include <iostream>
 
 using namespace hwfractal::gl;
 
-/* Pointer to keys_down. */
-static void *global_map;
+/* Pointers. */
+static void *global_keyconfig;
+static void *global_keysdown;
 
 control::control(const std::shared_ptr<config> &config) {
 	this->_config = config;
@@ -69,6 +70,8 @@ control::control(const std::shared_ptr<config> &config) {
 control::~control() {
 	/* Cleanup any resources used by OpenGL. */
 	if (this->_window != NULL) {
+		/* Remove callbacks. */
+		glfwSetKeyCallback(this->_window, NULL);
 		/* Cleanup VBO. */
 		glDeleteBuffers(1, &this->_vertexbuffer);
 		glDeleteVertexArrays(1, &this->_vertex_array_id);
@@ -79,40 +82,32 @@ control::~control() {
 }
 
 void control::render() const {
-	do {
-		glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 
-		/* Use shader. */
-		glUseProgram(this->_program_id);
+	/* Use shader. */
+	glUseProgram(this->_program_id);
 
-		/* Apply attributes. */
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, this->_vertexbuffer);
-		glVertexAttribPointer(
-			0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
-		);
+	/* Apply attributes. */
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, this->_vertexbuffer);
+	glVertexAttribPointer(
+		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		3,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		0,                  // stride
+		(void*)0            // array buffer offset
+	);
 
-		/* Draw triangle. */
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+	/* Draw triangle. */
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 
-		glDisableVertexAttribArray(0); /* No idea what it does, DON'T REMOVE! */
+	glDisableVertexAttribArray(0); /* No idea what it does, DON'T REMOVE! */
 
-
-		glfwSwapBuffers(this->_window);
-		glfwPollEvents();
-	} while (glfwWindowShouldClose(this->_window) == 0);
+	glfwSwapBuffers(this->_window);
 }
 
 int control::poll() const {
-	throw runtime_exception("control::poll() not implemented!");
-	return -1;
-}
-
-const bool &control::keydown(const keybind &key) const {
-	return this->_keysdown.at(key);
+	glfwPollEvents();
+	return glfwWindowShouldClose(this->_window);
 }
