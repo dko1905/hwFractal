@@ -24,6 +24,7 @@ Run `builddir/hwfractal`
 - [X] Fill window with TriangleFan.
 - [X] Capture keys.
 - [ ] Movement, panning and zoom.
+- [ ] Actual mandelbrot shader.
 - [ ] ...
 
 ## License
