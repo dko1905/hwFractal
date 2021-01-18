@@ -22,7 +22,7 @@ Run `builddir/hwfractal`
 - [X] Create GLFW window.
 - [X] Use shaders to render.
 - [X] Fill window with TriangleFan.
-- [ ] Capture keys.
+- [X] Capture keys.
 - [ ] Movement, panning and zoom.
 - [ ] ...
 

@@ -36,11 +36,19 @@ config::config(const std::string &&config_path) {
 }
 
 const std::string &config::get(std::string &key) const noexcept {
-	return this->_map.at(key);
+	if (this->_map.count(key) == 1) {
+		return this->_map.at(key);
+	} else {
+		return empty;
+	}
 }
 
 const std::string &config::get(std::string &&key) const noexcept {
-	return this->_map.at(key);
+	if (this->_map.count(key) == 1) {
+		return this->_map.at(key);
+	} else {
+		return empty;
+	}
 }
 
 void config::set(std::string &key, std::string &value) noexcept {

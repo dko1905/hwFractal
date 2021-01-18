@@ -21,11 +21,13 @@ namespace hwfractal {
 			GLuint _vertex_array_id = 0;
 			GLuint _vertexbuffer = 0;
 			GLuint _program_id = 0;
+			std::map<int, bool> _keysdown;
 		public:
 			gl_controller(const std::shared_ptr<const config> &config);
 			virtual ~gl_controller();
 			virtual void render() const;
 			virtual int poll() const;
+			virtual bool keydown(int key) const noexcept;
 		};
 	}
 }

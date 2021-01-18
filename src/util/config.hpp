@@ -5,8 +5,10 @@
 
 namespace hwfractal {
 	class config {
-	private:
+	private:		
 		std::map<std::string, std::string> _map;
+
+		const std::string empty = "";
 	public:
 		config(const std::string &config_path);
 		config(const std::string &&config_path);

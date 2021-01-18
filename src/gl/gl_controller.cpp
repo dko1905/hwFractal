@@ -11,6 +11,8 @@
 using namespace hwfractal;
 using namespace gl;
 
+static std::map<int, bool> *keysdown = NULL;
+
 gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core_controller(config) {
 	this->_config = config;
 
@@ -18,12 +20,12 @@ gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core
 	if (!glfwInit()) {
 		throw runtime_exception("Failed to initialize GLFW");
 	}
-	/* Request OpenGL 3.3. */
+	/* Request OpenGL 4.1. */
 	glfwWindowHint(GLFW_SAMPLES, atoi(
 		this->_config->get("GL_GLFW_SAMPLES").c_str()
 	));
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); /* Make MacOS happy. */
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	/* Open window. */
@@ -58,10 +60,21 @@ gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core
 	glBindBuffer(GL_ARRAY_BUFFER, this->_vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(gl::vertex_buffer_data), gl::vertex_buffer_data, GL_STATIC_DRAW);
 	/* Setup callbacks. */
-	auto resisze_lamda = [](GLFWwindow* _w, int width, int height) {
+	GLFWframebuffersizefun resisze_lamda = [](GLFWwindow* _w, int width, int height) {
 		glViewport(0, 0, width, height);
 	};
+	GLFWkeyfun key_lamda = [](GLFWwindow* _w, int key, int _scancode, int action, int _mods) {
+		if(action == GLFW_PRESS || action == GLFW_RELEASE){
+			if(action == GLFW_PRESS){
+				(*keysdown)[key] = true;
+			} else{
+				(*keysdown)[key] = false;
+			}
+		}
+	};
+	keysdown = &this->_keysdown;
 	glfwSetFramebufferSizeCallback(this->_window, resisze_lamda);
+	glfwSetKeyCallback(this->_window, key_lamda);
 }
 
 gl_controller::~gl_controller() {
@@ -106,4 +119,12 @@ void gl_controller::render() const {
 int gl_controller::poll() const {
 	glfwPollEvents();
 	return glfwWindowShouldClose(this->_window);
+}
+
+bool gl_controller::keydown(int key) const noexcept {
+	if (this->_keysdown.count(key) == 1) {
+		return this->_keysdown.at(key);
+	} else {
+		return false;
+	}
 }

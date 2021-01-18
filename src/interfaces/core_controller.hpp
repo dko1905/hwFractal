@@ -16,6 +16,8 @@ namespace hwfractal {
 			virtual void render() const = 0;
 			/* Polls for events, returns 1 if program should exit, else 0. */
 			virtual int poll() const = 0;
+			/* Check if key is down. */
+			virtual bool keydown(int key) const noexcept = 0;
 		};
 	}
 }

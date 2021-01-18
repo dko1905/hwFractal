@@ -9,7 +9,7 @@
 #include "util/config.hpp"
 #include "util/printer.hpp"
 
-#define CATCH_EXCEPTIONS 1
+#define CATCH_EXCEPTIONS 0
 
 using namespace hwfractal;
 

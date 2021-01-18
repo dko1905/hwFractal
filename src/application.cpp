@@ -1,7 +1,9 @@
-#include "application.hpp"
+#include "gl/gl.hpp"
 
 #include "gl/gl_controller.hpp"
 #include "util/printer.hpp"
+
+#include "application.hpp"
 
 using namespace hwfractal;
 
@@ -14,6 +16,7 @@ application::application(const std::shared_ptr<const config> &config) {
 		this->_core_controller->render();
 		exit = this->_core_controller->poll();
 	} while (
+		this->_core_controller->keydown(GLFW_KEY_Q) != true &&
 		exit == 0
 	);
 }
