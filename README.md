@@ -21,7 +21,7 @@ Run `builddir/hwfractal`
 - [X] Basic project structure, including build system.
 - [X] Create GLFW window.
 - [X] Use shaders to render.
-- [ ] Fill window with TriangleFan.
+- [X] Fill window with TriangleFan.
 - [ ] Capture keys.
 - [ ] Movement, panning and zoom.
 - [ ] ...
