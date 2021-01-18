@@ -23,17 +23,17 @@ namespace hwfractal {
 		class control {
 		private:
 			std::shared_ptr<config> _config;
-			GLFWwindow *_window;
-			unsigned int _vertex_array_id;
-			unsigned int _vertexbuffer;
-			unsigned int _program_id;
+			GLFWwindow *_window = NULL;
+			GLuint _vertex_array_id = 0;
+			GLuint _vertexbuffer = 0;
+			GLuint _program_id = 0;
 
 			std::map<keybind, bool> _keysdown;
 		public:
 			control(const std::shared_ptr<config> &config);
 			~control();
 			void render() const;
-			void poll() const;
+			int poll() const;
 			const bool &keydown(const keybind &key) const;
 		};
 	}
