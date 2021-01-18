@@ -22,7 +22,11 @@ There should be a binary in `builddir/` called hwfractal. Just run it.
 ## Todo
 - [X] Write README.md.
 - [X] Basic project structure, including build system.
-- [ ] Create GLFW window.
+- [X] Create GLFW window.
+- [X] Use shaders to render.
+- [ ] Fill window with TriangleFan.
+- [ ] Capture keys.
+- [ ] Movement, panning and zoom.
 - [ ] ...
 
 ## License
