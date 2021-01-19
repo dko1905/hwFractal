@@ -23,8 +23,10 @@ Run `builddir/hwfractal`
 - [X] Use shaders to render.
 - [X] Fill window with TriangleFan.
 - [X] Capture keys.
-- [ ] Movement, panning and zoom.
-- [ ] Actual mandelbrot shader.
+- [X] Movement, panning and zoom.
+- [X] Actual mandelbrot shader.
+- [ ] Max iteration uniform.
+- [ ] Dynamic iteration, aka do frames with lower iteration and then higher.
 - [ ] ...
 
 ## License
