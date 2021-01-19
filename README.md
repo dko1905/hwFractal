@@ -25,7 +25,7 @@ Run `builddir/hwfractal`
 - [X] Capture keys.
 - [X] Movement, panning and zoom.
 - [X] Actual mandelbrot shader.
-- [ ] Max iteration uniform.
+- [X] Max iteration uniform.
 - [ ] Dynamic iteration, aka do frames with lower iteration and then higher.
 - [ ] ...
 

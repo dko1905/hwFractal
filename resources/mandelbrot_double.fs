@@ -1,13 +1,12 @@
 #version 410 core
 
-#define ITER_MAX 5000
-
 in vec4 gl_FragCoord;
 out vec3 color;
 
 uniform double u_scale;
 uniform dvec2 u_pan;
 uniform vec2 u_resolution;
+uniform int u_iter_max;
 
 dvec2 cmpxmul(in dvec2 a, in dvec2 b);
 dvec2 cmpxadd(in dvec2 a, in dvec2 b);
@@ -23,7 +22,7 @@ void main() {
 	dvec2 c = dvec2(coord.x, coord.y);
 	dvec2 z = dvec2(0., 0.);
 
-	while (cmpxabs(z) < 4.0 && n < ITER_MAX) {
+	while (cmpxabs(z) < 4.0 && n < u_iter_max) {
 		// z = (z * z) + c;
 		z = cmpxmul(z, z);
 		z = cmpxadd(z, c);
@@ -31,7 +30,7 @@ void main() {
 	}
 
 	//color = hsv2rgb(vec3(cos(coord.x * coord.y), 1, 1));
-	color = hsv2rgb(vec3(n * 360 / float(ITER_MAX), 1.f, 1.f));
+	color = hsv2rgb(vec3(n * 360 / float(u_iter_max), 1.f, 1.f));
 }
 
 vec3 hsv2rgb(in vec3 c) {

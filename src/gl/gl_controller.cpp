@@ -94,13 +94,13 @@ gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core
 	}
 	this->_u_resolution = resolution;
 
+	this->_u_iter_max_id = glGetUniformLocation(this->_program_id, "u_iter_max");
 	this->_u_scale_id = glGetUniformLocation(this->_program_id, "u_scale");
 	this->_u_pan_id = glGetUniformLocation(this->_program_id, "u_pan");
 	this->_u_resolution_id = glGetUniformLocation(this->_program_id, "u_resolution");
 	if (this->_u_scale_id < 0 || this->_u_pan_id < 0 || this->_u_resolution_id < 0) {
 		throw runtime_exception("Failed to find uniform, continueing program.");
 	}
-
 }
 
 gl_controller::~gl_controller() {
@@ -126,6 +126,7 @@ void gl_controller::render() const {
 
 	/* Set uniform, might need to be into init. */
 	glUniform2fv(this->_u_resolution_id, 1, &this->_u_resolution[0]);
+	glUniform1i(this->_u_iter_max_id, this->_u_iter_max);
 	if (this->_use_double) {
 		glUniform1d(this->_u_scale_id, this->_u_scale_d);
 		glUniform2dv(this->_u_pan_id, 1, &this->_u_pan_d[0]);
