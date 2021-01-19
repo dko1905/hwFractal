@@ -22,7 +22,8 @@ namespace hwfractal {
 			/* Uniforms (all). */
 			bool _use_double = _config->get("GL_USE_DOUBLE") == "YES" ? 1 : 0;
 			glm::vec2 _u_resolution {0.f};
-			GLint _u_iter_max = 3000;
+			GLint _u_iter_max = 30;
+			bool changed;
 
 			GLuint _u_scale_id = 0;
 			GLuint _u_pan_id = 0;

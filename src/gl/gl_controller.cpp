@@ -156,37 +156,52 @@ void gl_controller::render() const {
 
 void gl_controller::proc_movement() {
 	if (this->keydown(GLFW_KEY_A)) {
+		changed = true;
 		if (this->_use_double)
 			this->_u_pan_d.x = _u_pan_d.x - 0.01 * _u_scale_d;
 		else
 			this->_u_pan.x = _u_pan.x - 0.01f * _u_scale;
 	} else if (this->keydown(GLFW_KEY_D)) {
+		changed = true;
 		if (this->_use_double)
 			this->_u_pan_d.x = _u_pan_d.x + 0.01 * _u_scale_d;
 		else
 			this->_u_pan.x = _u_pan.x + 0.01f * _u_scale;
 	}
 	if (this->keydown(GLFW_KEY_W)) {
+		changed = true;
 		if (this->_use_double)
 			this->_u_pan_d.y = _u_pan_d.y + 0.01 * _u_scale_d;
 		else
 			this->_u_pan.y = _u_pan.y + 0.01f * _u_scale;
 	} else if (this->keydown(GLFW_KEY_S)) {
+		changed = true;
 		if (this->_use_double)
 			this->_u_pan_d.y = _u_pan_d.y - 0.01 * _u_scale_d;
 		else
 			this->_u_pan.y = _u_pan.y - 0.01f * _u_scale;
 	}
 	if (this->keydown(GLFW_KEY_Z)) {
+		changed = true;
 		if (this->_use_double)
 			this->_u_scale_d = _u_scale_d - (0.01 * _u_scale_d);
 		else
 			this->_u_scale = _u_scale - (0.01f * _u_scale);
 	} else if (this->keydown(GLFW_KEY_X)) {
+		changed = true;
 		if (this->_use_double)
 			this->_u_scale_d = _u_scale_d + (0.01 * _u_scale_d);
 		else
 			this->_u_scale = _u_scale + (0.01f * _u_scale);
+	}
+
+	if (!changed) {
+		if (this->_u_iter_max < 2000) {
+			_u_iter_max *= 1.05f;
+		}
+	} else {
+		_u_iter_max = 30;
+		changed = false;
 	}
 }
 
