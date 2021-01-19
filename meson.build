@@ -13,6 +13,7 @@ glfw = dependency('glfw3', version: '>= 3')
 glew = dependency('glew')
 glm = dependency('glm')
 threads = dependency('threads')
+opengl = dependency('opengl') # Needed for windows.
 
 executable(
 	'hwfractal',
@@ -27,7 +28,7 @@ executable(
 		'src/gl/shaders.cpp'
 	],
 	dependencies: [
-		glfw, glew, glm, threads
+		glfw, glew, glm, threads, opengl
 	],
 	include_directories: [
 		'src'
