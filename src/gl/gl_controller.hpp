@@ -26,10 +26,10 @@ namespace hwfractal {
 			GLuint _u_pan_id = 0;
 			GLuint _u_resolution_id = 0;
 			/* Uniforms (float). */
-			float _u_scale = 1.f;
+			float _u_scale = 0.005267f;
 			glm::vec2 _u_pan {0.f};
 			/* Uniforms (double). */
-			double _u_scale_d = 1.;
+			double _u_scale_d = 0.005267;
 			glm::dvec2 _u_pan_d {0.};
 
 			/* OpenGL stuff. */
