@@ -12,6 +12,8 @@ namespace hwfractal {
 		public:
 			core_controller(const std::shared_ptr<const config> &config);
 			virtual ~core_controller() = default;
+			/* Process keypresses into movement. */
+			virtual void proc_movement() = 0;
 			/* Render to window. */
 			virtual void render() const = 0;
 			/* Polls for events, returns 1 if program should exit, else 0. */

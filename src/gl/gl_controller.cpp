@@ -1,5 +1,6 @@
 #include <memory>
 #include <iostream>
+#include <string>
 
 #include "exceptions/runtime_exception.hpp"
 #include "interfaces/core_controller.hpp"
@@ -12,9 +13,12 @@ using namespace hwfractal;
 using namespace gl;
 
 static std::map<int, bool> *keysdown = NULL;
+static glm::vec2 *u_resolution;
 
 gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core_controller(config) {
 	this->_config = config;
+
+	const glm::vec2 resolution = {600.f, 400.f};
 
 	glewExperimental = true; /* Needed for core profile. */
 	if (!glfwInit()) {
@@ -29,7 +33,7 @@ gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); /* Make MacOS happy. */
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	/* Open window. */
-	this->_window = glfwCreateWindow( 600, 400, "hwfractal", NULL, NULL);
+	this->_window = glfwCreateWindow(resolution.x, resolution.y, "hwfractal", NULL, NULL);
 	if (this->_window == NULL) {
 		glfwTerminate(); /* Cleanup. */
 		this->_window = NULL;
@@ -53,7 +57,7 @@ gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core
 	/* Compile shaders. */
 	this->_program_id = shaders::compile(
 		this->_config->get("GL_SHADER_VPATH"),
-		this->_config->get("GL_SHADER_FPATH")
+		this->_use_double ? this->_config->get("GL_SHADER_FPATH_DOUBLE") : this->_config->get("GL_SHADER_FPATH") 
 	);
 	/* Setup vertexbuffer. */
 	glGenBuffers(1, &this->_vertexbuffer);
@@ -62,8 +66,9 @@ gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core
 	/* Setup callbacks. */
 	GLFWframebuffersizefun resisze_lamda = [](GLFWwindow* _w, int width, int height) {
 		glViewport(0, 0, width, height);
+		*u_resolution = glm::vec2(width, height);
 	};
-	GLFWkeyfun key_lamda = [](GLFWwindow* _w, int key, int _scancode, int action, int _mods) {
+	auto key_lamda = [](GLFWwindow* _w, int key, int _scancode, int action, int _mods) {
 		if(action == GLFW_PRESS || action == GLFW_RELEASE){
 			if(action == GLFW_PRESS){
 				(*keysdown)[key] = true;
@@ -73,8 +78,24 @@ gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core
 		}
 	};
 	keysdown = &this->_keysdown;
+	u_resolution = &this->_u_resolution;
 	glfwSetFramebufferSizeCallback(this->_window, resisze_lamda);
 	glfwSetKeyCallback(this->_window, key_lamda);
+	/* Setup uniforms. */
+	if (this->_use_double) {
+		printer::info("Program using doubles.");
+	} else {
+		printer::info("Program using floats.");
+	}
+	this->_u_resolution = resolution;
+
+	this->_u_scale_id = glGetUniformLocation(this->_program_id, "u_scale");
+	this->_u_pan_id = glGetUniformLocation(this->_program_id, "u_pan");
+	this->_u_resolution_id = glGetUniformLocation(this->_program_id, "u_resolution");
+	if (this->_u_scale_id < 0 || this->_u_pan_id < 0 || this->_u_resolution_id < 0) {
+		throw runtime_exception("Failed to find uniform, continueing program.");
+	}
+
 }
 
 gl_controller::~gl_controller() {
@@ -82,6 +103,7 @@ gl_controller::~gl_controller() {
 	if (this->_window != NULL) {
 		/* Remove callbacks. */
 		glfwSetKeyCallback(this->_window, NULL);
+		glfwSetFramebufferSizeCallback(this->_window, NULL);
 		/* Cleanup VBO. */
 		glDeleteBuffers(1, &this->_vertexbuffer);
 		glDeleteVertexArrays(1, &this->_vertex_array_id);
@@ -96,6 +118,16 @@ void gl_controller::render() const {
 
 	/* Use shader. */
 	glUseProgram(this->_program_id);
+
+	/* Set uniform, might need to be into init. */
+	glUniform2fv(this->_u_resolution_id, 1, &this->_u_resolution[0]);
+	if (this->_use_double) {
+		glUniform1d(this->_u_scale_id, this->_u_scale_d);
+		glUniform2dv(this->_u_pan_id, 1, &this->_u_pan_d[0]);
+	} else {
+		glUniform1f(this->_u_scale_id, this->_u_scale);
+		glUniform2fv(this->_u_pan_id, 1, &this->_u_pan[0]);
+	}
 
 	/* Apply attributes. */
 	glEnableVertexAttribArray(0);
@@ -116,9 +148,48 @@ void gl_controller::render() const {
 	glfwSwapBuffers(this->_window);
 }
 
+void gl_controller::proc_movement() {
+	if (this->keydown(GLFW_KEY_A)) {
+		if (this->_use_double)
+			this->_u_pan_d.x = _u_pan_d.x - 0.01 * _u_scale_d;
+		else
+			this->_u_pan.x = _u_pan.x - 0.01f * _u_scale;
+	} else if (this->keydown(GLFW_KEY_D)) {
+		if (this->_use_double)
+			this->_u_pan_d.x = _u_pan_d.x + 0.01 * _u_scale_d;
+		else
+			this->_u_pan.x = _u_pan.x + 0.01f * _u_scale;
+	}
+	if (this->keydown(GLFW_KEY_W)) {
+		if (this->_use_double)
+			this->_u_pan_d.y = _u_pan_d.y + 0.01 * _u_scale_d;
+		else
+			this->_u_pan.y = _u_pan.y + 0.01f * _u_scale;
+	} else if (this->keydown(GLFW_KEY_S)) {
+		if (this->_use_double)
+			this->_u_pan_d.y = _u_pan_d.y - 0.01 * _u_scale_d;
+		else
+			this->_u_pan.y = _u_pan.y - 0.01f * _u_scale;
+	}
+	if (this->keydown(GLFW_KEY_Z)) {
+		if (this->_use_double)
+			this->_u_scale_d = _u_scale_d - (0.01 * _u_scale_d);
+		else
+			this->_u_scale = _u_scale - (0.01f * _u_scale);
+	} else if (this->keydown(GLFW_KEY_X)) {
+		if (this->_use_double)
+			this->_u_scale_d = _u_scale_d + (0.01 * _u_scale_d);
+		else
+			this->_u_scale = _u_scale + (0.01f * _u_scale);
+	}
+}
+
 int gl_controller::poll() const {
 	glfwPollEvents();
-	return glfwWindowShouldClose(this->_window);
+	int quit = glfwWindowShouldClose(this->_window);
+	if (this->keydown(GLFW_KEY_Q))
+		quit = 1;
+	return quit;
 }
 
 bool gl_controller::keydown(int key) const noexcept {

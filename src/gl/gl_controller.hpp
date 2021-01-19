@@ -17,14 +17,30 @@ namespace hwfractal {
 		/* Control*/
 		class gl_controller : public interfaces::core_controller {
 		private:
+			std::map<int, bool> _keysdown;
+		
+			/* Uniforms (all). */
+			bool _use_double = _config->get("GL_USE_DOUBLE") == "YES" ? 1 : 0;
+			glm::vec2 _u_resolution {0.f};
+			GLuint _u_scale_id = 0;
+			GLuint _u_pan_id = 0;
+			GLuint _u_resolution_id = 0;
+			/* Uniforms (float). */
+			float _u_scale = 1.f;
+			glm::vec2 _u_pan {0.f};
+			/* Uniforms (double). */
+			double _u_scale_d = 1.;
+			glm::dvec2 _u_pan_d {0.};
+
+			/* OpenGL stuff. */
 			GLFWwindow *_window = NULL;
 			GLuint _vertex_array_id = 0;
 			GLuint _vertexbuffer = 0;
 			GLuint _program_id = 0;
-			std::map<int, bool> _keysdown;
 		public:
 			gl_controller(const std::shared_ptr<const config> &config);
 			virtual ~gl_controller();
+			virtual void proc_movement();
 			virtual void render() const;
 			virtual int poll() const;
 			virtual bool keydown(int key) const noexcept;

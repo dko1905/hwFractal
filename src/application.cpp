@@ -13,6 +13,7 @@ application::application(const std::shared_ptr<const config> &config) {
 
 	int exit = 0;
 	do {
+		this->_core_controller->proc_movement();
 		this->_core_controller->render();
 		exit = this->_core_controller->poll();
 	} while (
