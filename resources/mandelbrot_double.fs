@@ -29,8 +29,11 @@ void main() {
 		n++;
 	}
 
-	//color = hsv2rgb(vec3(cos(coord.x * coord.y), 1, 1));
-	color = hsv2rgb(vec3(n * 360 / float(u_iter_max), 1.f, 1.f));
+	if (n >= u_iter_max) {
+		color = vec3(0.f, 0.f, 0.f);
+	} else {
+		color = hsv2rgb(vec3(((n * 10) % 255)/255.f, 1.f, 1.f));
+	}
 }
 
 vec3 hsv2rgb(in vec3 c) {
