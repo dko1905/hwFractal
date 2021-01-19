@@ -24,12 +24,17 @@ gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core
 	if (!glfwInit()) {
 		throw runtime_exception("Failed to initialize GLFW");
 	}
-	/* Request OpenGL 4.1. */
-	glfwWindowHint(GLFW_SAMPLES, atoi(
-		this->_config->get("GL_GLFW_SAMPLES").c_str()
-	));
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+	/* Request OpenGL 4.1 or 3.3 depending on GL_USE_DOUBLE. */
+	if (this->_use_double) {
+		printer::info("Using GLFW version 4.1");
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+	} else {
+		printer::info("Using GLFW version 3.3");
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	}
+	glfwWindowHint(GLFW_SAMPLES, 1);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); /* Make MacOS happy. */
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	/* Open window. */

@@ -1,6 +1,6 @@
-#version 410 core
+#version 330 core
 
-#define ITER_MAX 1000
+#define ITER_MAX 5000
 
 in vec4 gl_FragCoord;
 out vec3 color;
