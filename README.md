@@ -1,4 +1,5 @@
 # HardWare accelerated Fractals
+![Screenshot of fractal](./screenshot1.png)
 There are currently two branches, C and C++. Why, I wanted to compare what it
 feels like writing the program in C and in C++. Currently only C++ is
 implemented.
