@@ -26,6 +26,9 @@ Run `builddir/hwfractal`
 - [X] Movement, panning and zoom.
 - [X] Actual mandelbrot shader.
 - [X] Max iteration uniform.
+- [ ] Smart config defaulting.
+- [ ] Good key handling.
+- [ ] Dynamic shader switching.
 - [ ] Dynamic iteration, aka do frames with lower iteration and then higher.
 - [ ] ...
 
