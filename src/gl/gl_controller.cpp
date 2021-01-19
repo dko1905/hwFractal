@@ -88,9 +88,9 @@ gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core
 	glfwSetKeyCallback(this->_window, key_lamda);
 	/* Setup uniforms. */
 	if (this->_use_double) {
-		printer::info("Program using doubles.");
+		printer::info("Shader using 64-bit floats.");
 	} else {
-		printer::info("Program using floats.");
+		printer::info("Shader using 32-bit floats.");
 	}
 	this->_u_resolution = resolution;
 
