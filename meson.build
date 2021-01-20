@@ -13,7 +13,7 @@ project(
 opengl = declare_dependency(
 	link_args: '-lopengl32'
 )
-if build_machine.system() != 'Windows'
+if build_machine.system() != 'windows'
 	opengl = declare_dependency()
 endif
 
