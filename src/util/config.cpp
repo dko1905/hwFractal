@@ -10,7 +10,7 @@ using namespace hwfractal;
 config::config(const std::string &config_path) {
 	std::ifstream in(config_path, std::ios::in);
 	std::string line, key;
-	
+
 	while (std::getline(in, line)) {
 		size_t position = line.find("=");
 		

@@ -21,8 +21,9 @@ namespace hwfractal {
 		
 			/* Uniforms (all). */
 			bool _use_double = _config->get("GL_USE_DOUBLE") == "YES" ? 1 : 0;
+			bool _use_dynitr = _config->get("GL_USE_DYNITR") == "YES" ? 1 : 0;
 			glm::vec2 _u_resolution {0.f};
-			GLint _u_iter_max = 30;
+			GLint _u_iter_max = _use_dynitr ? atoi(_config->get("GL_DYNITR_MIN").c_str()) : 2000;
 			bool changed;
 
 			GLuint _u_scale_id = 0;

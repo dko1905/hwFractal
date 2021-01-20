@@ -195,13 +195,15 @@ void gl_controller::proc_movement() {
 			this->_u_scale = _u_scale + (0.01f * _u_scale);
 	}
 
-	if (!changed) {
-		if (this->_u_iter_max < 2000) {
-			_u_iter_max *= 1.05f;
+	if (_use_dynitr) {
+		if (!changed) {
+			if (this->_u_iter_max < atoi(_config->get("GL_DYNITR_MAX").c_str())) {
+				_u_iter_max *= 1.05f;
+			}
+		} else {
+			_u_iter_max = atoi(_config->get("GL_DYNITR_MIN").c_str());
+			changed = false;
 		}
-	} else {
-		_u_iter_max = 30;
-		changed = false;
 	}
 }
 
