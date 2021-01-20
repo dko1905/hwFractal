@@ -9,11 +9,18 @@ project(
 	],
 )
 
+# Create opengl dep, and only add ld flags on windows.
+opengl = declare_dependency(
+	link_args: '-lopengl32'
+)
+if build_machine.system() != 'Windows'
+	opengl = declare_dependency()
+endif
+
 glfw = dependency('glfw3', version: '>= 3')
 glew = dependency('glew')
 glm = dependency('glm')
 threads = dependency('threads')
-opengl = dependency('opengl') # Needed for windows.
 
 executable(
 	'hwfractal',
