@@ -11,7 +11,6 @@ project(
 
 glfw = dependency('glfw3', version: '>= 3')
 glew = dependency('glew')
-glm = dependency('glm')
 
 executable(
 	'hwfractal',
@@ -19,6 +18,6 @@ executable(
 		'src/main.c',
 	],
 	dependencies: [
-		glfw, glew, glm
+		glfw, glew
 	]
 )
