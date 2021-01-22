@@ -29,4 +29,4 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libglfw3-dev libglew-dev libglm-dev
       - uses: BSFishy/meson-build@v1.0.2
         with:
-          action: compile
+          action: build
