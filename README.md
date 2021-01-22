@@ -1,5 +1,5 @@
-# HardWare accelerated Fractals (C++)
-![C++ CI](https://github.com/Dko1905/hwFractal/workflows/C++%20CI/badge.svg?branch=cpp)
+# HardWare accelerated Fractals (C)
+![C CI](https://github.com/Dko1905/hwFractal/workflows/C%20CI/badge.svg?branch=c)
 ## Compiling & running
 ### Dependencies
 These dependencies don't include meson, which is the build system.
