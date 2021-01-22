@@ -124,7 +124,7 @@ void gl_controller::render() const {
 	/* Use shader. */
 	glUseProgram(this->_program_id);
 
-	/* Set uniform, might need to be into init. */
+	/* Set uniform. */
 	glUniform2fv(this->_u_resolution_id, 1, &this->_u_resolution[0]);
 	glUniform1i(this->_u_iter_max_id, this->_u_iter_max);
 	if (this->_use_double) {
@@ -221,4 +221,8 @@ bool gl_controller::keydown(int key) const noexcept {
 	} else {
 		return false;
 	}
+}
+
+double gl_controller::get_time() const noexcept {
+	return glfwGetTime();
 }

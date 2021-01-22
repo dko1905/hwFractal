@@ -20,6 +20,8 @@ namespace hwfractal {
 			virtual int poll() const = 0;
 			/* Check if key is down. */
 			virtual bool keydown(int key) const noexcept = 0;
+			/* Get time since last frame. */
+			virtual double get_time() const noexcept = 0;
 		};
 	}
 }

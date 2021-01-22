@@ -49,6 +49,7 @@ namespace hwfractal {
 			virtual void render() const;
 			virtual int poll() const;
 			virtual bool keydown(int key) const noexcept;
+			virtual double get_time() const noexcept;
 		};
 	}
 }
