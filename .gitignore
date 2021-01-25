@@ -1,4 +1,7 @@
-# Meson
+# meson
 builddir/
-# Etc
+# etc
 .vscode/
+# clangd
+.cache/
+compile_commands.json
