@@ -1,6 +1,9 @@
 # HardWare accelerated Fractals (C++)
 ![C++ CI](https://github.com/Dko1905/hwFractal/workflows/C++%20CI/badge.svg?branch=cpp)
 ## Compiling & running
+On Linux you will need to recompile it, on Windows you can just extract and run the newst release.
+The releases are 64-bit only. 
+
 ### Dependencies
 These dependencies don't include meson, which is the build system.
 | OS / Distro       | Package names                         |
