@@ -21,7 +21,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: builddir
-          key: ${{ runner.os }}-meson-${{ hashFiles(meson.build) }}
+          key: ${{ runner.os }}-meson-${{ hashFiles('meson.build') }}
           restore-keys: ${{ runner.os }}-meson-
       - name: Compile using ninja.
         run: ninja -C builddir -j `nproc`
