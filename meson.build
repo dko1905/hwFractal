@@ -23,6 +23,7 @@ glew = dependency('glew')
 glm = dependency('glm')
 threads = dependency('threads')
 
+
 executable(
 	'hwfractal',
 	[
