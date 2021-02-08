@@ -16,10 +16,12 @@ jobs:
       - uses: actions/setup-python@v1
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y libglfw3-dev libglew-dev libglm-dev meson ninja-build
-      - uses: BSFishy/meson-build@v1.0.2
-        with:
-          action: build
       - name: Generate ninja files.
         run: meson setup builddir --buildtype release
+      - uses: actions/cache@v2
+        with:
+          path: builddir
+          key: ${{ runner.os }}-meson-${{ hashFiles(meson.build) }}
+          restore-keys: ${{ runner.os }}-meson-
       - name: Compile using ninja.
         run: ninja -C builddir -j `nproc`
