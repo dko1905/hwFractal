@@ -21,5 +21,6 @@ jobs:
           cp -rv resources release
   publish-github:
     needs: build
-    run: echo "Done!"
-
+    steps:
+      - name: Thing
+        run: echo "Done!"
