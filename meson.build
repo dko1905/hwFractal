@@ -39,6 +39,6 @@ executable(
 		glfw, glew, glm, threads, opengl
 	],
 	include_directories: [
-		'src'
+		include_directories('src')
 	]
 )
