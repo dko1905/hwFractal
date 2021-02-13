@@ -16,6 +16,7 @@ executable(
 	'hwfractal',
 	[
 		'src/main.c',
+		'src/glw.c',
 	],
 	dependencies: [
 		glfw, glew
