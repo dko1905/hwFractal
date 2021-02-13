@@ -21,7 +21,6 @@ int main() {
 		fprintf(stderr, "Failed to init OpenGL: %i\n", glw_result);
 		return EXIT_FAILURE;
 	}
-	printf("It went good.\n");
 
 	while (glw_poll(info, &config) != 1) {
 		glw_render(info, &config);
