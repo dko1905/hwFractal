@@ -9,16 +9,12 @@ project(
 	],
 )
 
-glfw = dependency('glfw3', version: '>= 3')
-glew = dependency('glew')
-
 executable(
 	'hwfractal',
 	[
 		'src/main.c',
-		'src/glw.c',
 	],
 	dependencies: [
-		glfw, glew
+
 	]
 )
