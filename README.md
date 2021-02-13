@@ -20,7 +20,7 @@ Run `builddir/hwfractal`
 ## Todo
 - [X] Write README.md.
 - [X] Basic project structure, including build system.
-- [ ] Create GLFW window.
+- [X] Create GLFW window.
 - [ ] Use shaders to render.
 - [ ] Fill window with TriangleFan.
 - [ ] Capture keys.
