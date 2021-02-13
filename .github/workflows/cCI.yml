@@ -2,9 +2,9 @@ name: C-advanced CI
 
 on:
   push:
-    branches: [ c ]
+    branches: [ c-advanced ]
   pull_request:
-    branches: [ c ]
+    branches: [ c-advanced ]
   workflow_dispatch:
 
 jobs:
