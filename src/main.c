@@ -10,6 +10,8 @@ int main() {
 	int glw_result = 0;
 
 	config.window_name = "Test window";
+	config.fragment_path = "resources/test.fs";
+	config.vertex_path = "resources/test.vs";
 	config.width = 600;
 	config.height = 600;
 	config.glfw_version_major = 3;
@@ -21,7 +23,9 @@ int main() {
 	}
 	printf("It went good.\n");
 
-	scanf("\n"); /* Wait until newline. */
+	while (glw_poll(info, &config) != 1) {
+		glw_render(info, &config);
+	}
 
 	glw_free(&info);
 

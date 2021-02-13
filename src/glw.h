@@ -9,5 +9,7 @@ struct glw_info;
 
 int glw_init(struct glw_info **_info_p, const struct runtime_config *_config);
 void glw_free(struct glw_info **_info_p);
+void glw_render(const struct glw_info *_info, const struct runtime_config *_config);
+int glw_poll(const struct glw_info *_info, const struct runtime_config *_config);
 
 #endif
