@@ -19,5 +19,6 @@ executable(
 	],
 	dependencies: [
 		opencl
-	]
+	],
+	c_args: '-Wno-deprecated-declarations'
 )
