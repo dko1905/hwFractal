@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+#include <stdlib.h>
 #include <errno.h>
 
 #include "clw/clw.h"
@@ -15,6 +17,7 @@ int main() {
 	struct clw_info *info = NULL;
 	struct clw_config config;
 
+	srand(time(NULL)); /* Configure random numbers. */
 	memset(&config, 0, sizeof(config));
 	config.kernel_use_file = true;
 	config.kernel_path = "resources/kernel.opencl";
@@ -25,7 +28,7 @@ int main() {
 		return -1;
 	}
 
-	clw_test(info);
+	clw_test2(info, 10);
 
 	clw_free(&info);
 

@@ -19,5 +19,6 @@ int clw_init(struct clw_info **_info_p, const struct clw_config *_config);
 void clw_free(struct clw_info **_info_p);
 
 void clw_test(struct clw_info *_info);
+void clw_test2(struct clw_info *info, size_t arr_size);
 
 #endif

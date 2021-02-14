@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <math.h>
 #include <sys/stat.h>
 
 #define CL_TARGET_OPENCL_VERSION 120
@@ -14,17 +15,12 @@
 #include "clw.h"
 #include "../util/printer.h"
 
-#define DATA_LEN 10
-
 struct clw_info {
 	cl_device_id device_id;
 	cl_context context;
 	cl_command_queue command_queue;
 	cl_program program;
 	cl_kernel kernel;
-
-	cl_mem data_gpu;
-	float data_cpu[DATA_LEN];
 };
 
 static int choose_device(struct clw_info *info, const struct clw_config *config, cl_device_id *device_id);
@@ -42,7 +38,7 @@ int clw_init(struct clw_info **info_p, const struct clw_config *config) {
 	}
 	info = *info_p;
 
-	/* Steps to setup OpenCL: 
+	/* Steps to setup OpenCL:
 	 * 1. Get/select device
 	 * 2. Create context
 	 * 3. Create command queue
@@ -64,7 +60,7 @@ int clw_init(struct clw_info **info_p, const struct clw_config *config) {
 	}
 	pdebug("Created context");
 	/* 3. Create commancl_int *errcode_retd queue */
-	/* Yes, we are using a deprecated function here, but we are targeting 
+	/* Yes, we are using a deprecated function here, but we are targeting
 	 * OpenCL 1.2, so it's fine.
 	 */
 	info->command_queue = clCreateCommandQueue(info->context, info->device_id, 0, &ret);
@@ -122,25 +118,16 @@ int clw_init(struct clw_info **info_p, const struct clw_config *config) {
 	}
 	pdebug("Built program");
 	/* Create kernel. */
-	info->kernel = clCreateKernel(info->program, "calcSin", &ret);
+	info->kernel = clCreateKernel(info->program, "calcArr", &ret);
 	if (ret != CL_SUCCESS) {
 		perr("Failed to create kernel: %i", ret);
 		goto cl_creatkernel_err;
 	}
 	pdebug("Created kernel");
 	free(kernel_str);
-	/* 5. Create buffers */
-	info->data_gpu = clCreateBuffer(info->context, CL_MEM_READ_WRITE, sizeof(info->data_cpu), NULL, &ret);
-	if (ret != CL_SUCCESS) {
-		perr("Failed to create buffer 1: %i", ret);
-		goto cl_creatbuffer_err;
-	}
-	pdebug("Created buffer 1");
 
 	return 0;
 
-	clReleaseMemObject(info->data_gpu);
-cl_creatbuffer_err:
 	clReleaseKernel(info->kernel);
 cl_creatkernel_err:
 cl_buildprogram_err:
@@ -162,69 +149,197 @@ malloc_info_err:
 void clw_free(struct clw_info **info_p) {
 	struct clw_info *info = *info_p;
 
-	clReleaseMemObject(info->data_gpu);
 	clReleaseKernel(info->kernel);
 	clReleaseProgram(info->program);
 	clReleaseCommandQueue(info->command_queue);
 	clReleaseContext(info->context);
-	
+
 	free(*info_p);
 	*info_p = NULL;
 }
 
-void clw_test(struct clw_info *info) {
-	/*!! There is no error handling !!*/
+void clw_test2(struct clw_info *info, size_t arr_size) {
+	float *in1 = NULL, *in2 = NULL, *out = NULL;
+	cl_mem in1_mem = NULL, in2_mem = NULL, out_mem = NULL;
 	cl_int ret = 0;
-	info->data_cpu[0] = 70.f;
-	pdebug("1:");
-	for (size_t n = 0; n < sizeof(info->data_cpu)/sizeof(info->data_cpu[0]); ++n) {
-		info->data_cpu[n] = (float)(rand() % 1000) / 10.f;
-		pdebug("\t%zu: %f", n, info->data_cpu[n]);
-	}
 
-	/* Copy data to buffer. */
-	ret = clEnqueueWriteBuffer(info->command_queue, info->data_gpu, CL_FALSE, 0, sizeof(info->data_cpu), info->data_cpu, 0, NULL, NULL);
-	if (ret != CL_SUCCESS) {
-		perr("Failed to enqueue write buffer: %i", ret);
-		return;
+	/* Create CPU buffers. */
+	in1 = malloc(arr_size * sizeof(float));
+	if (in1 == NULL) {
+		perr("Failed to allocate in1 (CPU): %s", strerror(errno));
+		goto in1_err;
 	}
-	pdebug("Enqueued write buffer");
-
-	/* Execute kernel. */
-	ret = clSetKernelArg(info->kernel, 0, sizeof(info->data_gpu), &info->data_gpu);
-	if (ret != CL_SUCCESS) {
-		perr("Failed to set kernel arguments: %i", ret);
-		return;
+	in2 = malloc(arr_size * sizeof(float));
+	if (in2 == NULL) {
+		perr("Failed to allocate n2 (CPU): %s", strerror(errno));
+		goto in2_err;
 	}
+	out = malloc(arr_size * sizeof(float));
+	if (out == NULL) {
+		perr("Failed to allocate out (CPU): %s", strerror(errno));
+		goto out_err;
+	}
+	pdebug("Allocated n1, n2 and out (CPU)");
+	/* Create GPU buffer. */
+	in1_mem = clCreateBuffer(info->context, CL_MEM_READ_ONLY, arr_size * sizeof(float), NULL, &ret);
+	if (ret != CL_SUCCESS) {
+		perr("Failed to create in1 (GPU): %i", ret);
+		goto in1_gpu_err;
+	}
+	in2_mem = clCreateBuffer(info->context, CL_MEM_READ_ONLY, arr_size * sizeof(float), NULL, &ret);
+	if (ret != CL_SUCCESS) {
+		perr("Failed to create in2 (GPU): %i", ret);
+		goto in2_gpu_err;
+	}
+	out_mem = clCreateBuffer(info->context, CL_MEM_WRITE_ONLY, arr_size * sizeof(float), NULL, &ret);
+	if (ret != CL_SUCCESS) {
+		perr("Failed to create out (GPU): %i", ret);
+		goto out_gpu_err;
+	}
+	pdebug("Created in1, in2 and out (GPU)");
+	/* Fill CPU buffers. */
+	for (size_t n = 0; n < arr_size; ++n) {
+		in1[n] = (float)(rand() % 1000) / 10.f;
+		in2[n] = (float)(rand() % 1000) / 10.f;
+		out[n] = 1.5f;
+	}
+	/* Enqueue onto GPU. */
+	ret = clEnqueueWriteBuffer(info->command_queue, in1_mem, CL_FALSE, 0, arr_size * sizeof(float), in1, 0, NULL, NULL);
+	if (ret != CL_SUCCESS) {
+		perr("Failed to enqueue in1: %i", ret);
+		goto enqueue_err;
+	}
+	ret = clEnqueueWriteBuffer(info->command_queue, in2_mem, CL_FALSE, 0, arr_size * sizeof(float), in2, 0, NULL, NULL);
+	if (ret != CL_SUCCESS) {
+		perr("Failed to enqueue in2: %i", ret);
+		goto enqueue_err;
+	}
+	ret = clEnqueueWriteBuffer(info->command_queue, out_mem, CL_FALSE, 0, arr_size * sizeof(float), out, 0, NULL, NULL);
+	if (ret != CL_SUCCESS) {
+		perr("Failed to enqueue out: %i", ret);
+		goto enqueue_err;
+	}
+	pdebug("Enqueued n1 and n2");
+	/* Set kernel arguments. */
+ 	ret = clSetKernelArg(info->kernel, 0, sizeof(cl_mem), &in1_mem);
+ 	if (ret != CL_SUCCESS) {
+ 		perr("Failed to set in1 argument: %i", ret);
+ 		goto kernel_arg_err;
+ 	}
+ 	ret = clSetKernelArg(info->kernel, 1, sizeof(cl_mem), &in2_mem);
+ 	if (ret != CL_SUCCESS) {
+ 		perr("Failed to set in2 argument: %i", ret);
+ 		goto kernel_arg_err;
+ 	}
+ 	ret = clSetKernelArg(info->kernel, 2, sizeof(cl_mem), &out_mem);
+ 	if (ret != CL_SUCCESS) {
+ 		perr("Failed to set out argument: %i", ret);
+ 		goto kernel_arg_err;
+ 	}
 	pdebug("Set kernel arguments");
-	size_t global_dimensions[] = {sizeof(info->data_cpu)/sizeof(info->data_cpu[0]), 0, 0};
+	/* Enqueue starting the kernel. */
+	size_t global_dimensions[] = {arr_size, 0, 0};
 	ret = clEnqueueNDRangeKernel(info->command_queue, info->kernel, 1, NULL, global_dimensions, NULL, 0, NULL, NULL);
 	if (ret != CL_SUCCESS) {
 		perr("Failed to enqueue NDRangeKernel: %i", ret);
-		return;
+		goto range_enqueue_err;
 	}
 	pdebug("Enqueued NDRangeKernel");
-
 	/* Read results. */
-	ret = clEnqueueReadBuffer(info->command_queue, info->data_gpu, CL_FALSE, 0, sizeof(info->data_cpu), info->data_cpu, 0, NULL, NULL);
+	ret = clEnqueueReadBuffer(info->command_queue, out_mem, CL_FALSE, 0, arr_size * sizeof(float), out, 0, NULL, NULL);
 	if (ret != CL_SUCCESS) {
 		perr("Failed to enqueue ReadBuffer: %i", ret);
-		return;
+		goto read_out_err;
 	}
 	pdebug("Enqueued ReadBuffer");
-
+	/* Wait until it's done. */
 	ret = clFinish(info->command_queue);
 	if (ret != CL_SUCCESS) {
 		perr("Failed to finish: %i", ret);
-		return;
+		goto finish_err;
 	}
 	pdebug("Finished", ret);
-
-	pdebug("2:");
-	for (size_t n = 0; n < sizeof(info->data_cpu)/sizeof(info->data_cpu[0]); ++n) {
-		pdebug("\t%zu: %f", n, info->data_cpu[n]);
+	/* Print results. */
+	pdebug("Output: ");
+	for (size_t n = 0; n < arr_size - 1; ++n) {
+		printf("%.3f, ", in1[n]);
 	}
+	printf("%.3f\n", out[arr_size - 1]);
+	for (size_t n = 0; n < arr_size - 1; ++n) {
+		printf("%.3f, ", in2[n]);
+	}
+	printf("%.3f\n", out[arr_size - 1]);
+	for (size_t n = 0; n < arr_size - 1; ++n) {
+		printf("%.3f, ", out[n]);
+	}
+	printf("%.3f\n", out[arr_size - 1]);
+
+finish_err:
+read_out_err:
+range_enqueue_err:
+kernel_arg_err:
+enqueue_err:
+	clReleaseMemObject(out_mem);
+out_gpu_err:
+	clReleaseMemObject(in2_mem);
+in2_gpu_err:
+	clReleaseMemObject(in1_mem);
+in1_gpu_err:
+	free(out);
+out_err:
+	free(in2);
+in2_err:
+	free(in1);
+in1_err:
+	return;
 }
+
+// void clw_test(struct clw_info *info) {
+// 	cl_int ret = 0;
+
+// 	/* Copy data to buffer. */
+// 	ret = clEnqueueWriteBuffer(info->command_queue, info->data_gpu, CL_FALSE, 0, sizeof(info->data_cpu), info->data_cpu, 0, NULL, NULL);
+// 	if (ret != CL_SUCCESS) {
+// 		perr("Failed to enqueue write buffer: %i", ret);
+// 		return;
+// 	}
+// 	pdebug("Enqueued write buffer");
+
+// 	/* Execute kernel. */
+// 	ret = clSetKernelArg(info->kernel, 0, sizeof(info->data_gpu), &info->data_gpu);
+// 	if (ret != CL_SUCCESS) {
+// 		perr("Failed to set kernel arguments: %i", ret);
+// 		return;
+// 	}
+// 	pdebug("Set kernel arguments");
+// 	size_t global_dimensions[] = {sizeof(info->data_cpu)/sizeof(info->data_cpu[0]), 0, 0};
+// 	ret = clEnqueueNDRangeKernel(info->command_queue, info->kernel, 1, NULL, global_dimensions, NULL, 0, NULL, NULL);
+// 	if (ret != CL_SUCCESS) {
+// 		perr("Failed to enqueue NDRangeKernel: %i", ret);
+// 		return;
+// 	}
+// 	pdebug("Enqueued NDRangeKernel");
+
+// 	/* Read results. */
+// 	ret = clEnqueueReadBuffer(info->command_queue, info->data_gpu, CL_FALSE, 0, sizeof(info->data_cpu), info->data_cpu, 0, NULL, NULL);
+// 	if (ret != CL_SUCCESS) {
+// 		perr("Failed to enqueue ReadBuffer: %i", ret);
+// 		return;
+// 	}
+// 	pdebug("Enqueued ReadBuffer");
+
+// 	ret = clFinish(info->command_queue);
+// 	if (ret != CL_SUCCESS) {
+// 		perr("Failed to finish: %i", ret);
+// 		return;
+// 	}
+// 	pdebug("Finished", ret);
+
+// 	pdebug("2:");
+// 	for (size_t n = 0; n < sizeof(info->data_cpu)/sizeof(info->data_cpu[0]); ++n) {
+// 		pdebug("\t%zu: %f", n, info->data_cpu[n]);
+// 	}
+// }
 
 static int choose_device(struct clw_info *info, const struct clw_config *config, cl_device_id *device_id) {
 	cl_int ret = 0;
