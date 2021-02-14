@@ -69,7 +69,10 @@ int clw_init(struct clw_info **info_p, const struct clw_config *config) {
 	if (config->kernel_use_file) {
 		FILE* file;
 		struct stat fstat;
-		stat(config->kernel_path, &fstat);
+		if (stat(config->kernel_path, &fstat) != 0) {
+			perr("Failed to stat %s: %s", config->kernel_path, strerror(errno));
+			goto cl_readkernel_err;
+		}
 		kernel_str = malloc(fstat.st_size + 1);
 		if (kernel_str == NULL) {
 			perr("Failed to allocate kernel_str buffer: %s", strerror(errno));
