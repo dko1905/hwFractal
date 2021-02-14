@@ -159,7 +159,7 @@ static int choose_device(struct clw_info *info, const struct clw_config *config,
 	cl_device_id *device_ids = NULL;
 
 	/* Get number of devices. */
-	ret = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_DEFAULT, 0, NULL, &devices);
+	ret = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_ALL, 0, NULL, &devices);
 	if (ret != CL_SUCCESS) {
 		perr("Failed to get device IDs");
 		return -1;
