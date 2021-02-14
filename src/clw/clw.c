@@ -6,13 +6,15 @@
 
 #define CL_TARGET_OPENCL_VERSION 200
 #ifdef __APPLE__
-#include <OpenCL/opencl.h>
+#  include <OpenCL/opencl.h>
 #else
-#include <CL/cl.h>
+#  include <CL/cl.h>
 #endif
 
 #include "clw.h"
 #include "../util/printer.h"
+
+#define DATA_LEN 50
 
 struct clw_info {
 	cl_device_id device_id;
@@ -20,6 +22,9 @@ struct clw_info {
 	cl_command_queue command_queue;
 	cl_program program;
 	cl_kernel kernel;
+
+	cl_mem data_gpu;
+	float data_cpu[DATA_LEN];
 };
 
 static int choose_device(struct clw_info *info, const struct clw_config *config, cl_device_id *device_id);
@@ -42,25 +47,26 @@ int clw_init(struct clw_info **info_p, const struct clw_config *config) {
 	 * 2. Create context
 	 * 3. Create command queue
 	 * 4. Read, compile & create kernel from source code
+	 * 5. Create buffers
 	 */
 	/* 1. Get device */
 	ret = choose_device(info, config, &info->device_id);
 	if (ret != 0) {
-		perr("Failed to get device IDs");
+		perr("Failed to get device IDs: %i", ret);
 		goto cl_gdids_err;
 	}
 	pdebug("Got device ID");
 	/* 2. Create context */
 	info->context = clCreateContext(NULL, 1, &info->device_id, NULL, NULL, &ret);
 	if (ret != CL_SUCCESS) {
-		perr("Failed to create context");
+		perr("Failed to create context: %i", ret);
 		goto cl_cc_err;
 	}
 	pdebug("Created context");
 	/* 3. Create commancl_int *errcode_retd queue */
 	info->command_queue = clCreateCommandQueueWithProperties(info->context, info->device_id, 0, &ret);
 	if (ret != CL_SUCCESS) {
-		perr("Failed to create command queue");
+		perr("Failed to create command queue: %i", ret);
 		goto cl_createqueue_err;
 	}
 	pdebug("Created command queue");
@@ -101,14 +107,14 @@ int clw_init(struct clw_info **info_p, const struct clw_config *config) {
 	/* Create program. */
 	info->program = clCreateProgramWithSource(info->context, 1, (const char **)&kernel_str, NULL, &ret);
 	if (ret != CL_SUCCESS) {
-		perr("Failed to create program");
+		perr("Failed to create program: %i", ret);
 		goto cl_creatprogram_err;
 	}
 	pdebug("Created program");
 	/* Build program. */
 	ret = clBuildProgram(info->program, 0, NULL, NULL, NULL, NULL);
 	if (ret != CL_SUCCESS) {
-		perr("Failed to build program");
+		perr("Failed to build program: %i", ret);
 		goto cl_buildprogram_err;
 	}
 	pdebug("Built program");
@@ -120,10 +126,18 @@ int clw_init(struct clw_info **info_p, const struct clw_config *config) {
 	}
 	pdebug("Created kernel");
 	free(kernel_str);
-
+	/* 5. Create buffers */
+	info->data_gpu = clCreateBuffer(info->context, CL_MEM_READ_WRITE, sizeof(info->data_cpu), NULL, &ret);
+	if (ret != CL_SUCCESS) {
+		perr("Failed to create buffer 1: %i", ret);
+		goto cl_creatbuffer_err;
+	}
+	pdebug("Created buffer 1");
 
 	return 0;
 
+	clReleaseMemObject(info->data_gpu);
+cl_creatbuffer_err:
 	clReleaseKernel(info->kernel);
 cl_creatkernel_err:
 cl_buildprogram_err:
@@ -144,7 +158,8 @@ malloc_info_err:
 
 void clw_free(struct clw_info **info_p) {
 	struct clw_info *info = *info_p;
-	
+
+	clReleaseMemObject(info->data_gpu);
 	clReleaseKernel(info->kernel);
 	clReleaseProgram(info->program);
 	clReleaseCommandQueue(info->command_queue);
@@ -152,6 +167,53 @@ void clw_free(struct clw_info **info_p) {
 	
 	free(*info_p);
 	*info_p = NULL;
+}
+
+void clw_test(struct clw_info *info) {
+	/*!! There is no error handling !!*/
+	cl_int ret = 0;
+	info->data_cpu[0] = 70.f;
+	pdebug("1: %f", info->data_cpu[0]);
+
+	/* Copy data to buffer. */
+	ret = clEnqueueWriteBuffer(info->command_queue, info->data_gpu, CL_FALSE, 0, sizeof(info->data_cpu), info->data_cpu, 0, NULL, NULL);
+	if (ret != CL_SUCCESS) {
+		perr("Failed to enqueue write buffer: %i", ret);
+		return;
+	}
+	pdebug("Enqueued write buffer");
+
+	/* Execute kernel. */
+	ret = clSetKernelArg(info->kernel, 0, sizeof(info->data_gpu), &info->data_gpu);
+	if (ret != CL_SUCCESS) {
+		perr("Failed to set kernel arguments: %i", ret);
+		return;
+	}
+	pdebug("Set kernel arguments");
+	size_t global_dimensions[] = {sizeof(info->data_cpu)/sizeof(info->data_cpu[0]), 0, 0};
+	ret = clEnqueueNDRangeKernel(info->command_queue, info->kernel, 1, NULL, global_dimensions, NULL, 0, NULL, NULL);
+	if (ret != CL_SUCCESS) {
+		perr("Failed to enqueue NDRangeKernel: %i", ret);
+		return;
+	}
+	pdebug("Enqueued NDRangeKernel");
+
+	/* Read results. */
+	ret = clEnqueueReadBuffer(info->command_queue, info->data_gpu, CL_FALSE, 0, sizeof(info->data_cpu), info->data_cpu, 0, NULL, NULL);
+	if (ret != CL_SUCCESS) {
+		perr("Failed to enqueue ReadBuffer: %i", ret);
+		return;
+	}
+	pdebug("Enqueued ReadBuffer");
+
+	ret = clFinish(info->command_queue);
+	if (ret != CL_SUCCESS) {
+		perr("Failed to finish: %i", ret);
+		return;
+	}
+	pdebug("Finished: %i", ret);
+
+	pdebug("1: %f", info->data_cpu[0]);
 }
 
 static int choose_device(struct clw_info *info, const struct clw_config *config, cl_device_id *device_id) {

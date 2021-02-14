@@ -18,12 +18,14 @@ int main() {
 	memset(&config, 0, sizeof(config));
 	config.kernel_use_file = true;
 	config.kernel_path = "resources/kernel.opencl";
-	config.gpu_choice = -1;
+	config.gpu_choice = 0;
 
 	if (clw_init(&info, &config) != 0) {
 		perr("clw_init: Fail: %s", strerror(errno));
 		return -1;
 	}
+
+	clw_test(info);
 
 	clw_free(&info);
 

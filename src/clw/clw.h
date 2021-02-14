@@ -18,4 +18,6 @@ struct clw_config {
 int clw_init(struct clw_info **_info_p, const struct clw_config *_config);
 void clw_free(struct clw_info **_info_p);
 
+void clw_test(struct clw_info *_info);
+
 #endif
