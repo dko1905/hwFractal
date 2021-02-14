@@ -247,13 +247,20 @@ static int choose_device(struct clw_info *info, const struct clw_config *config,
 		pinfo("    Device profile: %s", (char *)ret_buffer);
 	}
 
-
-	unsigned int user_input = 0;
-	do {
-		pinfo("Please choose device: ");
-	} while (scanf("%u", &user_input) != 1 || user_input > devices - 1);
-	pinfo("You chose %u", user_input);
-	*device_id = device_ids[0];
+	if (config->gpu_choice == -1) {
+		unsigned int user_input = 0;
+		do {
+			pinfo("Please choose device: ");
+		} while (scanf("%u", &user_input) != 1 || user_input > devices - 1);
+		pinfo("You chose %u", user_input);
+		*device_id = device_ids[user_input];
+	} else if (config->gpu_choice >= 0 && config->gpu_choice < devices - 1) {
+		*device_id = device_ids[config->gpu_choice];
+	} else {
+		free(device_ids);
+		perr("Invalid gpu choice in config.");
+		return -1;
+	}
 
 	free(device_ids);
 
