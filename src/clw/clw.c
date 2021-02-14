@@ -248,10 +248,17 @@ static int choose_device(struct clw_info *info, const struct clw_config *config,
 	}
 
 	if (config->gpu_choice == -1) {
-		unsigned int user_input = 0;
+		unsigned int user_input = -1;
+		int scanf_ret = 0;
 		do {
 			pinfo("Please choose device: ");
-		} while (scanf("%u", &user_input) != 1 || user_input > devices - 1);
+			scanf_ret = scanf("%u", &user_input);
+		} while (scanf_ret != EOF && (scanf_ret != 1 || user_input > devices - 1 || user_input < 0));
+		if (scanf_ret == EOF) {
+			free(device_ids);
+			perr("Received EOF, quitting.");
+			return -1;
+		}
 		pinfo("You chose %u", user_input);
 		*device_id = device_ids[user_input];
 	} else if (config->gpu_choice >= 0 && config->gpu_choice < devices - 1) {
