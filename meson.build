@@ -9,12 +9,15 @@ project(
 	],
 )
 
+opencl = dependency('OpenCL')
+
 executable(
 	'hwfractal',
 	[
 		'src/main.c',
+		'src/clw/clw.c'
 	],
 	dependencies: [
-
+		opencl
 	]
 )
