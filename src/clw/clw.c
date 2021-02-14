@@ -261,7 +261,7 @@ static int choose_device(struct clw_info *info, const struct clw_config *config,
 		}
 		pinfo("You chose %u", user_input);
 		*device_id = device_ids[user_input];
-	} else if (config->gpu_choice >= 0 && config->gpu_choice < devices - 1) {
+	} else if (config->gpu_choice >= 0 && config->gpu_choice < devices) {
 		*device_id = device_ids[config->gpu_choice];
 	} else {
 		free(device_ids);
