@@ -145,6 +145,7 @@ malloc_info_err:
 void clw_free(struct clw_info **info_p) {
 	struct clw_info *info = *info_p;
 	
+	clReleaseKernel(info->kernel);
 	clReleaseProgram(info->program);
 	clReleaseCommandQueue(info->command_queue);
 	clReleaseContext(info->context);
