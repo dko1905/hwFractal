@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#define CL_TARGET_OPENCL_VERSION 200
+#define CL_TARGET_OPENCL_VERSION 120
 #ifdef __APPLE__
 #  include <OpenCL/opencl.h>
 #else
@@ -14,7 +14,7 @@
 #include "clw.h"
 #include "../util/printer.h"
 
-#define DATA_LEN 50
+#define DATA_LEN 10
 
 struct clw_info {
 	cl_device_id device_id;
@@ -64,7 +64,10 @@ int clw_init(struct clw_info **info_p, const struct clw_config *config) {
 	}
 	pdebug("Created context");
 	/* 3. Create commancl_int *errcode_retd queue */
-	info->command_queue = clCreateCommandQueueWithProperties(info->context, info->device_id, 0, &ret);
+	/* Yes, we are using a deprecated function here, but we are targeting 
+	 * OpenCL 1.2, so it's fine.
+	 */
+	info->command_queue = clCreateCommandQueue(info->context, info->device_id, 0, &ret);
 	if (ret != CL_SUCCESS) {
 		perr("Failed to create command queue: %i", ret);
 		goto cl_createqueue_err;
