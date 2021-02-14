@@ -173,7 +173,11 @@ void clw_test(struct clw_info *info) {
 	/*!! There is no error handling !!*/
 	cl_int ret = 0;
 	info->data_cpu[0] = 70.f;
-	pdebug("1: %f", info->data_cpu[0]);
+	pdebug("1:");
+	for (size_t n = 0; n < sizeof(info->data_cpu)/sizeof(info->data_cpu[0]); ++n) {
+		info->data_cpu[n] = (float)(rand() % 1000) / 10.f;
+		pdebug("\t%zu: %f", n, info->data_cpu[n]);
+	}
 
 	/* Copy data to buffer. */
 	ret = clEnqueueWriteBuffer(info->command_queue, info->data_gpu, CL_FALSE, 0, sizeof(info->data_cpu), info->data_cpu, 0, NULL, NULL);
@@ -211,9 +215,12 @@ void clw_test(struct clw_info *info) {
 		perr("Failed to finish: %i", ret);
 		return;
 	}
-	pdebug("Finished: %i", ret);
+	pdebug("Finished", ret);
 
-	pdebug("1: %f", info->data_cpu[0]);
+	pdebug("2:");
+	for (size_t n = 0; n < sizeof(info->data_cpu)/sizeof(info->data_cpu[0]); ++n) {
+		pdebug("\t%zu: %f", n, info->data_cpu[n]);
+	}
 }
 
 static int choose_device(struct clw_info *info, const struct clw_config *config, cl_device_id *device_id) {
