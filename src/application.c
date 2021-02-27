@@ -48,11 +48,17 @@ static int vulkan_init(struct Application *app) {
 	VkApplicationInfo app_info = {0};
 	VkInstanceCreateInfo create_info = {0};
 	VkResult ret = 0;
-	uint32_t extensions_found = 0;
+	/* Extensions */
+	uint32_t requested_extensions_found = 0;
+	uint32_t required_extensions_found = 0;
 	uint32_t glfw_extension_count = 0;
 	uint32_t vulkan_extension_count = 0;
 	VkExtensionProperties *vulkan_extensions = NULL;
 	const char** glfw_extensions = NULL;
+	/* Validation layers. */
+	uint32_t layers_found = 0;
+	uint32_t layer_count = 0;
+	VkLayerProperties *layers = NULL;
 
 	/* Check if Vulkan is supported. */
 	if (glfwVulkanSupported() == GLFW_FALSE) {
@@ -80,6 +86,11 @@ static int vulkan_init(struct Application *app) {
 	for (uint32_t i = 0; i < glfw_extension_count; ++i) {
 		pdebug("    %s", glfw_extensions[i]);
 	}
+	/* Show requested extensions. */
+	pdebug("Requested extensions:");
+	for (uint32_t i = 0; i < app->config->requested_extension_count; ++i) {
+		pdebug("    %s", app->config->requested_extensions[i]);
+	}
 	/* Show available extensions. */
 	vkEnumerateInstanceExtensionProperties(NULL, &vulkan_extension_count, NULL);
 	vulkan_extensions = calloc(vulkan_extension_count, sizeof(VkExtensionProperties));
@@ -88,19 +99,61 @@ static int vulkan_init(struct Application *app) {
 	for (uint32_t i = 0; i < vulkan_extension_count; ++i) {
 		pdebug("    %s : %" PRIu32, vulkan_extensions[i].extensionName, vulkan_extensions[i].specVersion);
 	}
-	/* Compare the required extensions. */
+	/* Compare the required & requested extensions. */
 	for (uint32_t i = 0; i < glfw_extension_count; ++i) {
 		for (uint32_t n = 0; n < vulkan_extension_count; ++n) {
 			if (strcmp(glfw_extensions[i], vulkan_extensions[n].extensionName) == 0) {
-				++extensions_found;
+				++required_extensions_found;
+			}
+			if (strcmp(app->config->requested_extensions[i], vulkan_extensions[n].extensionName) == 0) {
+				++requested_extensions_found;
 			}
 		}
 	}
-	if (extensions_found == glfw_extension_count) {
-		pinfo("All extensions were found");
+	free(vulkan_extensions);
+	if (required_extensions_found == glfw_extension_count) {
+		pinfo("All required extensions were found");
 	} else {
-		perr("Failed to find extension, look at debug for more details");
+		perr("%" PRIu32 " of %" PRIu32 " required extensions were found, check debug for more details", required_extensions_found, glfw_extension_count);
 		return -1;
+	}
+	if (requested_extensions_found == app->config->requested_extension_count) {
+		pinfo("All requested extensions were found");
+	} else {
+		pwarn("%" PRIu32 " of %" PRIu32 " requested extensions were found, check debug for more details", requested_extensions_found, app->config->requested_extension_count);
+	}
+	/* Get available layers. */
+	if (app->config->requested_validation_layer_count > 0) {
+		vkEnumerateInstanceLayerProperties(&layer_count, NULL);
+		layers = calloc(layer_count, sizeof(VkLayerProperties));
+		vkEnumerateInstanceLayerProperties(&layer_count, layers);
+		/* Show requested layers. */
+		pdebug("Requested layers:");
+		for (uint32_t n = 0; n < app->config->requested_validation_layer_count; ++n) {
+			pdebug("    %s", app->config->requested_validation_layers[n]);
+		}
+		/* Show available layers. */
+		pdebug("Available laysers:");
+		for (uint32_t n = 0; n < layer_count; ++n) {
+			pdebug("    %s : %" PRIu32, layers[n].layerName, layers[n].specVersion);
+		}
+		/* Check if all are found. */
+		for (uint32_t n = 0; n < app->config->requested_validation_layer_count; ++n) {
+			for (uint32_t i = 0; i < layer_count; ++i) {
+				if (strcmp(app->config->requested_validation_layers[n], layers[i].layerName) == 0) {
+					++layers_found;
+				}
+			}
+		}
+		if (layers_found == app->config->requested_validation_layer_count) {
+			pinfo("%" PRIu32 " of %" PRIu32 " layer(s) found", layers_found, app->config->requested_validation_layer_count);
+			create_info.enabledLayerCount = layers_found;
+			create_info.ppEnabledLayerNames = app->config->requested_validation_layers;
+		} else {
+			pwarn("%" PRIu32 " of %" PRIu32 " layer(s) found", layers_found, app->config->requested_validation_layer_count);
+		}
+
+		free(layers);
 	}
 
 	/* Set extensions. */
@@ -141,6 +194,7 @@ struct Application *application_init(struct Config *config) {
 
 	return app;
 
+	vkDestroyInstance(app->instance, NULL);
 vulkan_err:
 	glfwDestroyWindow(app->window);
 	glfwTerminate();
@@ -153,6 +207,8 @@ application_err:
 void application_free(struct Application *app) {
 	if (app == NULL)
 		return;
+	/* Vulkan */
+	vkDestroyInstance(app->instance, NULL);
 
 	/* OpenGL */
 	glfwDestroyWindow(app->window);

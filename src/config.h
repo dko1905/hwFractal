@@ -7,6 +7,11 @@ struct Config {
 	const uint32_t height;
 	const char *title;
 	const uint8_t version[3]; /* 0, 1, 2 */
+	/* Vulkan */
+	uint32_t requested_extension_count;
+	const char **requested_extensions;
+	uint32_t requested_validation_layer_count;
+	const char **requested_validation_layers;
 };
 
 #endif
