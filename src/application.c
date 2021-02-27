@@ -17,9 +17,16 @@ struct Application {
 	GLFWwindow *window;
 	/* Vulkan */
 	VkInstance instance;
+	uint32_t enabled_extension_count;
 	const char **enabled_extensions;
+	uint32_t enabled_layer_count;
 	const char **enabled_layers;
 	VkPhysicalDevice physical_device;
+	VkDevice device;
+	struct {
+		uint32_t graphics_family;
+	} queue_family;
+	VkQueue graphics_queue;
 };
 
 /* ## Static/private functions ## */
@@ -175,6 +182,7 @@ static int vulkan_init(struct Application *app) {
 		create_info.enabledExtensionCount = enabled_extension_count;
 		create_info.ppEnabledExtensionNames = enabled_extensions;
 		app->enabled_extensions = enabled_extensions;
+		app->enabled_extension_count = enabled_extension_count;
 		/* Print currently enabled extensions. */
 		pdebug("Enabled extensions:");
 		for (uint32_t n = 0; n < enabled_extension_count; ++n) {
@@ -264,6 +272,7 @@ static int vulkan_init(struct Application *app) {
 		create_info.enabledLayerCount = enabled_layer_count;
 		create_info.ppEnabledLayerNames = enabled_layers;
 		app->enabled_layers = enabled_layers;
+		app->enabled_layer_count = enabled_layer_count;
 		/* Print enabled layers. */
 		pdebug("Enabled layers:");
 		for (uint32_t n = 0; n < enabled_layer_count; ++n) {
@@ -297,6 +306,9 @@ support_err:
 static int pick_physical_device(struct Application *app) {
 	VkResult ret = 0;
 	uint32_t device_count = 0;
+	uint32_t queue_family_count = 0;
+	bool queue_graphics = false;
+	VkQueueFamilyProperties *queue_family = NULL;
 	VkPhysicalDevice *devices = NULL;
 	VkPhysicalDeviceProperties properties = {0};
 	VkPhysicalDeviceFeatures features = {0};
@@ -322,9 +334,13 @@ static int pick_physical_device(struct Application *app) {
 	/* Print devices. */
 	pinfo("Devices:");
 	for (uint32_t n = 0; n < device_count; ++n) {
-		/* Check if device can be used. */
+		/* Get data. */
 		vkGetPhysicalDeviceProperties(devices[n], &properties);
 		vkGetPhysicalDeviceFeatures(devices[n], &features);
+		vkGetPhysicalDeviceQueueFamilyProperties(devices[n], &queue_family_count, NULL);
+		queue_family = calloc(queue_family_count, sizeof(*queue_family));
+		vkGetPhysicalDeviceQueueFamilyProperties(devices[n], &queue_family_count, queue_family);
+		/* Display data. */
 		pinfo("%" PRIu32 "    %s", n, properties.deviceName);
 		if (!features.geometryShader) {
 			pwarn("        No geometry shader, cannot be used");
@@ -337,6 +353,18 @@ static int pick_physical_device(struct Application *app) {
 		} else {
 			pinfo("        Support 64 bit float, will have better precision");
 		}
+		queue_graphics = false;
+		for (uint32_t i = 0; i < queue_family_count; ++i) {
+			if (queue_family[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+				queue_graphics = true;
+			}
+		}
+		if (!queue_graphics) {
+			pwarn("        No graphics queue detected, cannot be used");
+		} else {
+			pinfo("        Graphics queue detected, can be used");
+		}
+		free(queue_family);
 	}
 	/* Pick device. */
 	if (app->config->device_pick != -1) {
@@ -359,7 +387,20 @@ static int pick_physical_device(struct Application *app) {
 		} while(1);
 	}
 	pinfo("Selected device %" PRIu32, app->config->device_pick);
-
+	/* Save queue families. */
+	vkGetPhysicalDeviceQueueFamilyProperties(app->physical_device, &queue_family_count, NULL);
+	queue_family = calloc(queue_family_count, sizeof(*queue_family));
+	vkGetPhysicalDeviceQueueFamilyProperties(app->physical_device, &queue_family_count, queue_family);
+	queue_graphics = false;
+	for (uint32_t n = 0; n < queue_family_count; ++n) {
+		if (queue_family[n].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+			queue_graphics = true;
+			app->queue_family.graphics_family = n;
+		}
+	}
+	pdebug("Graphics family is %" PRIu32, app->queue_family.graphics_family);
+	free(queue_family);
+	/* Done. */
 	free(devices);
 	return 0;
 
@@ -367,6 +408,38 @@ gen_device:
 	free(devices);
 get_device:
 	return -1;
+}
+static int create_logical_device(struct Application *app) {
+	VkResult ret = VK_SUCCESS;
+	VkDeviceQueueCreateInfo queue_creat_info = {0};
+	VkPhysicalDeviceFeatures device_features = {0};
+	VkDeviceCreateInfo creat_info = {0};
+	float queuePriority = 1.0f;
+
+	queue_creat_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	queue_creat_info.queueFamilyIndex = app->queue_family.graphics_family;
+	queue_creat_info.queueCount = 1;
+	queue_creat_info.pQueuePriorities = &queuePriority;
+
+	creat_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	creat_info.pQueueCreateInfos = &queue_creat_info;
+	creat_info.queueCreateInfoCount = 1;
+
+	creat_info.pEnabledFeatures = &device_features;
+	creat_info.enabledExtensionCount = 0;
+	creat_info.enabledLayerCount = app->enabled_layer_count;
+	creat_info.ppEnabledLayerNames = app->enabled_layers;
+
+	ret = vkCreateDevice(app->physical_device, &creat_info, NULL, &app->device);
+	if (ret != VK_SUCCESS) {
+		perr("Failed to create device: %i", ret);
+		return -1;
+	} else {
+		pinfo("Created logical device");
+	}
+
+	vkGetDeviceQueue(app->device, app->queue_family.graphics_family, 0, &app->graphics_queue);
+	return 0;
 }
 
 /* ## Extern/public functions ## */
@@ -394,9 +467,15 @@ struct Application *application_init(struct Config *config) {
 		perr("Failed to pick physical device");
 		goto phys_device_err;
 	}
+	/* Setup logical device. */
+	if (create_logical_device(app) != 0) {
+		perr("Failed to create logical device");
+		goto logi_device_err;
+	}
 
 	return app;
 
+logi_device_err:
 phys_device_err:
 	vkDestroyInstance(app->instance, NULL);
 vulkan_err:
@@ -412,6 +491,8 @@ void application_free(struct Application *app) {
 	if (app == NULL)
 		return;
 	/* Vulkan */
+	/* Queues are auto removed. */
+	vkDestroyDevice(app->device, NULL);
 	/* Physical device is auto removed. */
 	vkDestroyInstance(app->instance, NULL);
 	free(app->enabled_extensions);
