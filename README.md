@@ -1,5 +1,5 @@
 # HardWare accelerated Fractals (C-vulkan)
-![C-vulkan CI](https://github.com/Dko1905/hwFractal/workflows/C-advanced%20CI/badge.svg?branch=c-vulkan)
+[![C Vulkan CI](https://github.com/Dko1905/hwFractal/actions/workflows/cvCI.yml/badge.svg)](https://github.com/Dko1905/hwFractal/actions/workflows/cvCI.yml)
 ## Compiling & running
 ### Dependencies
 Vulkan & GLFW
