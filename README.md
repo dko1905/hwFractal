@@ -1,12 +1,12 @@
-# HardWare accelerated Fractals (C)
-![C CI](https://github.com/Dko1905/hwFractal/workflows/C%20CI/badge.svg?branch=c)
+# HardWare accelerated Fractals (C-advanced)
+![C-advanced CI](https://github.com/Dko1905/hwFractal/workflows/C-advanced%20CI/badge.svg?branch=c-advanced)
 ## Compiling & running
 ### Dependencies
 These dependencies don't include meson, which is the build system.
-| OS / Distro       | Package names             |
-|-------------------|---------------------------|
-| Void Linux        | glfw-devel, glew-devel    |
-| Ubuntu (or based) | libglfw3-dev, libglew-dev |
+| OS / Distro       | Package names                |
+|-------------------|------------------------------|
+| Void Linux        | opencl2-headers              |
+| Ubuntu (or based) | opencl-c-headers, opencl-dev |
 
 ### Compiling
 ```sh

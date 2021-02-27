@@ -9,16 +9,17 @@ project(
 	],
 )
 
-glfw = dependency('glfw3', version: '>= 3')
-glew = dependency('glew')
+vulkanDep = dependency('vulkan')
+glfwDep = dependency('glfw3', version: '>= 3')
 
 executable(
 	'hwfractal',
 	[
 		'src/main.c',
-		'src/glw.c',
+		'src/application.c',
 	],
 	dependencies: [
-		glfw, glew
-	]
+		vulkanDep,
+		glfwDep
+	],
 )
