@@ -239,8 +239,7 @@ static int vulkan_init(struct Application *app) {
 		if (requested_layers_found == requested_layer_count) {
 			pinfo("Found %" PRIu32 " of %" PRIu32 " requested layers", requested_layers_found, requested_layer_count);
 		} else {
-			perr("Found %" PRIu32 " of %" PRIu32 " requested layers", requested_layers_found, requested_layer_count);
-			goto set_lay_err;
+			pwarn("Found %" PRIu32 " of %" PRIu32 " requested layers", requested_layers_found, requested_layer_count);
 		}
 		/* Allocate space for layers. */
 		enabled_layer_count = required_layers_found + requested_layers_found;
