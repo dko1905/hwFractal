@@ -2,6 +2,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <errno.h>
 
 #include "application.h"
@@ -27,13 +28,15 @@ int main() {
 		.title = "123",
 		.version = {0, 1, 0},
 		/* Vulkan */
-		.requested_extension_count = 1,
+		.requested_extension_count = sizeof(requested_extensions)/sizeof(*requested_extensions),
 		.requested_extensions = requested_extensions,
-		.requested_validation_layer_count = 1,
-		.requested_validation_layers = requested_validation_layers
+		.requested_layer_count = sizeof(requested_validation_layers)/sizeof(*requested_validation_layers),
+		.requested_layers = requested_validation_layers
 	};
 
 	struct Application *app = application_init(&conf);
+	if (app == NULL)
+		return 1;
 
 	application_main(app);
 

@@ -10,8 +10,8 @@ struct Config {
 	/* Vulkan */
 	uint32_t requested_extension_count;
 	const char **requested_extensions;
-	uint32_t requested_validation_layer_count;
-	const char **requested_validation_layers;
+	uint32_t requested_layer_count;
+	const char **requested_layers;
 };
 
 #endif
