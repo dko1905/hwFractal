@@ -12,6 +12,7 @@ struct Config {
 	const char **requested_extensions;
 	uint32_t requested_layer_count;
 	const char **requested_layers;
+	int32_t device_pick;
 };
 
 #endif

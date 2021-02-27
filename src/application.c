@@ -19,6 +19,7 @@ struct Application {
 	VkInstance instance;
 	const char **enabled_extensions;
 	const char **enabled_layers;
+	VkPhysicalDevice physical_device;
 };
 
 /* ## Static/private functions ## */
@@ -293,6 +294,80 @@ get_ext_err:
 support_err:
 	return -1;
 }
+static int pick_physical_device(struct Application *app) {
+	VkResult ret = 0;
+	uint32_t device_count = 0;
+	VkPhysicalDevice *devices = NULL;
+	VkPhysicalDeviceProperties properties = {0};
+	VkPhysicalDeviceFeatures features = {0};
+
+	/* Get devices. */
+	ret = vkEnumeratePhysicalDevices(app->instance, &device_count, NULL);
+	if (ret != VK_SUCCESS) {
+		perr("Failed to get number of devices: %i", ret);
+		goto get_device;
+	}
+	devices = calloc(device_count, sizeof(*devices));
+	ret = vkEnumeratePhysicalDevices(app->instance, &device_count, devices);
+	if (ret != VK_SUCCESS) {
+		perr("Failed to get devices: %i", ret);
+		goto gen_device;
+	} else {
+		pdebug("Found %" PRIu32 " device(s)", device_count);
+	}
+	if (device_count < 1) {
+		perr("No device found");
+		goto gen_device;
+	}
+	/* Print devices. */
+	pinfo("Devices:");
+	for (uint32_t n = 0; n < device_count; ++n) {
+		/* Check if device can be used. */
+		vkGetPhysicalDeviceProperties(devices[n], &properties);
+		vkGetPhysicalDeviceFeatures(devices[n], &features);
+		pinfo("%" PRIu32 "    %s", n, properties.deviceName);
+		if (!features.geometryShader) {
+			pwarn("        No geometry shader, cannot be used");
+			continue;
+		} else {
+			pinfo("        Supports geometry shader, can be used");
+		}
+		if (!features.shaderFloat64) {
+			pwarn("        No support 64 bit float support, can be used with degraded precision");
+		} else {
+			pinfo("        Support 64 bit float, will have better precision");
+		}
+	}
+	/* Pick device. */
+	if (app->config->device_pick != -1) {
+		if (app->config->device_pick < device_count && app->config->device_pick >= 0) {
+			app->physical_device = devices[app->config->device_pick];
+		} else {
+			perr("Device selected is invalid");
+			goto gen_device;
+		}
+	} else {
+		do {
+			pinfo("Please select a device (0-%" PRIu32 ")", device_count - 1);
+			scanf("%" PRIu32, &app->config->device_pick);
+			if (app->config->device_pick < device_count && app->config->device_pick >= 0) {
+				app->physical_device = devices[app->config->device_pick];
+				break;
+			} else {
+				pwarn("Device selected is invalid");
+			}
+		} while(1);
+	}
+	pinfo("Selected device %" PRIu32, app->config->device_pick);
+
+	free(devices);
+	return 0;
+
+gen_device:
+	free(devices);
+get_device:
+	return -1;
+}
 
 /* ## Extern/public functions ## */
 struct Application *application_init(struct Config *config) {
@@ -314,9 +389,15 @@ struct Application *application_init(struct Config *config) {
 		perr("Failed to init Vulkan");
 		goto vulkan_err;
 	}
+	/* Pick physical device. */
+	if (pick_physical_device(app) != 0) {
+		perr("Failed to pick physical device");
+		goto phys_device_err;
+	}
 
 	return app;
 
+phys_device_err:
 	vkDestroyInstance(app->instance, NULL);
 vulkan_err:
 	glfwDestroyWindow(app->window);
@@ -331,6 +412,7 @@ void application_free(struct Application *app) {
 	if (app == NULL)
 		return;
 	/* Vulkan */
+	/* Physical device is auto removed. */
 	vkDestroyInstance(app->instance, NULL);
 	free(app->enabled_extensions);
 	free(app->enabled_layers);
