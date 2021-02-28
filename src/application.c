@@ -21,12 +21,15 @@ struct Application {
 	const char **enabled_extensions;
 	uint32_t enabled_layer_count;
 	const char **enabled_layers;
+	VkSurfaceKHR surface;
 	VkPhysicalDevice physical_device;
 	VkDevice device;
 	struct {
-		uint32_t graphics_family;
+		uint32_t graphics;
+		uint32_t present;
 	} queue_family;
 	VkQueue graphics_queue;
+	VkQueue present_queue;
 };
 
 /* ## Static/private functions ## */
@@ -303,15 +306,72 @@ get_ext_err:
 support_err:
 	return -1;
 }
+static int create_surface(struct Application *app) {
+	VkResult ret = VK_SUCCESS;
+
+	ret = glfwCreateWindowSurface(app->instance, app->window, NULL, &app->surface);
+	if (ret != VK_SUCCESS) {
+		perr("Failed to create window surface: %i", ret);
+		return -1;
+	} else {
+		pdebug("Created surface");
+	}
+
+	return 0;
+}
+struct DeviceFeatures {
+	char device_name[256];
+	bool geometry_shader_supported;
+	bool shader_float64_supported;
+	struct {
+		int32_t graphics;
+		int32_t present;
+	} queue_family;
+};
+static void get_device_features(struct Application *app, VkPhysicalDevice device, struct DeviceFeatures *df) {
+	VkPhysicalDeviceProperties properties = {0};
+	VkPhysicalDeviceFeatures features = {0};
+	uint32_t queue_property_count = 0;
+	VkBool32 present_bool = VK_FALSE;
+	VkQueueFamilyProperties *queue_properties = NULL;
+
+	/* Get data from Vulkan. */
+	vkGetPhysicalDeviceProperties(device, &properties);
+	vkGetPhysicalDeviceFeatures(device, &features);
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_property_count, NULL);
+	queue_properties = calloc(queue_property_count, sizeof(*queue_properties));
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_property_count, queue_properties);
+
+	/* Insert data into struct. */
+	strncpy(df->device_name, properties.deviceName, 256);
+	if (features.geometryShader == VK_TRUE) {
+		df->geometry_shader_supported = true;
+	} else {
+		df->geometry_shader_supported = false;
+	}
+	if (features.shaderFloat64 == VK_TRUE) {
+		df->shader_float64_supported = true;
+	} else {
+		df->shader_float64_supported = false;
+	}
+	/* Find the corrent queues. */
+	df->queue_family.graphics = -1;
+	df->queue_family.present = -1;
+	for (uint32_t n = 0; n < queue_property_count; ++n) {
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, n, app->surface, &present_bool);
+		if (queue_properties[n].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+			df->queue_family.graphics = n;
+		}
+		if (present_bool == VK_TRUE) {
+			df->queue_family.present = n;
+		}
+	}
+}
 static int pick_physical_device(struct Application *app) {
 	VkResult ret = 0;
 	uint32_t device_count = 0;
-	uint32_t queue_family_count = 0;
-	bool queue_graphics = false;
-	VkQueueFamilyProperties *queue_family = NULL;
 	VkPhysicalDevice *devices = NULL;
-	VkPhysicalDeviceProperties properties = {0};
-	VkPhysicalDeviceFeatures features = {0};
+	struct DeviceFeatures device_features = {0};
 
 	/* Get devices. */
 	ret = vkEnumeratePhysicalDevices(app->instance, &device_count, NULL);
@@ -334,37 +394,14 @@ static int pick_physical_device(struct Application *app) {
 	/* Print devices. */
 	pinfo("Devices:");
 	for (uint32_t n = 0; n < device_count; ++n) {
-		/* Get data. */
-		vkGetPhysicalDeviceProperties(devices[n], &properties);
-		vkGetPhysicalDeviceFeatures(devices[n], &features);
-		vkGetPhysicalDeviceQueueFamilyProperties(devices[n], &queue_family_count, NULL);
-		queue_family = calloc(queue_family_count, sizeof(*queue_family));
-		vkGetPhysicalDeviceQueueFamilyProperties(devices[n], &queue_family_count, queue_family);
-		/* Display data. */
-		pinfo("%" PRIu32 "    %s", n, properties.deviceName);
-		if (!features.geometryShader) {
-			pwarn("        No geometry shader, cannot be used");
-			continue;
-		} else {
-			pinfo("        Supports geometry shader, can be used");
-		}
-		if (!features.shaderFloat64) {
-			pwarn("        No support 64 bit float support, can be used with degraded precision");
-		} else {
-			pinfo("        Support 64 bit float, will have better precision");
-		}
-		queue_graphics = false;
-		for (uint32_t i = 0; i < queue_family_count; ++i) {
-			if (queue_family[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-				queue_graphics = true;
-			}
-		}
-		if (!queue_graphics) {
-			pwarn("        No graphics queue detected, cannot be used");
-		} else {
-			pinfo("        Graphics queue detected, can be used");
-		}
-		free(queue_family);
+		get_device_features(app, devices[n], &device_features);
+
+		pinfo("    %s", device_features.device_name);
+		pinfo("        Geometry shader: %" PRIu32, device_features.geometry_shader_supported);
+		pinfo("        Float64: %" PRIu32, device_features.shader_float64_supported);
+		pinfo("        Queue:");
+		pinfo("            Graphics: %" PRIi32, device_features.queue_family.graphics);
+		pinfo("            Present: %" PRIi32, device_features.queue_family.present);
 	}
 	/* Pick device. */
 	if (app->config->device_pick != -1) {
@@ -387,19 +424,10 @@ static int pick_physical_device(struct Application *app) {
 		} while(1);
 	}
 	pinfo("Selected device %" PRIu32, app->config->device_pick);
-	/* Save queue families. */
-	vkGetPhysicalDeviceQueueFamilyProperties(app->physical_device, &queue_family_count, NULL);
-	queue_family = calloc(queue_family_count, sizeof(*queue_family));
-	vkGetPhysicalDeviceQueueFamilyProperties(app->physical_device, &queue_family_count, queue_family);
-	queue_graphics = false;
-	for (uint32_t n = 0; n < queue_family_count; ++n) {
-		if (queue_family[n].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-			queue_graphics = true;
-			app->queue_family.graphics_family = n;
-		}
-	}
-	pdebug("Graphics family is %" PRIu32, app->queue_family.graphics_family);
-	free(queue_family);
+	/* Save data into `Application` struct. */
+	get_device_features(app, app->physical_device, &device_features);
+	app->queue_family.graphics = device_features.queue_family.graphics;
+	app->queue_family.present = device_features.queue_family.present;
 	/* Done. */
 	free(devices);
 	return 0;
@@ -411,19 +439,25 @@ get_device:
 }
 static int create_logical_device(struct Application *app) {
 	VkResult ret = VK_SUCCESS;
-	VkDeviceQueueCreateInfo queue_creat_info = {0};
+	VkDeviceQueueCreateInfo *queue_creat_info_arr = NULL;
 	VkPhysicalDeviceFeatures device_features = {0};
 	VkDeviceCreateInfo creat_info = {0};
 	float queuePriority = 1.0f;
 
-	queue_creat_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	queue_creat_info.queueFamilyIndex = app->queue_family.graphics_family;
-	queue_creat_info.queueCount = 1;
-	queue_creat_info.pQueuePriorities = &queuePriority;
+	const uint32_t queue_count = 2;
+	queue_creat_info_arr = calloc(queue_count, sizeof(*queue_creat_info_arr));
+	for (uint32_t n = 0; n < queue_count; ++n) {
+		VkDeviceQueueCreateInfo queue_creat_info = {0};
+		queue_creat_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    	queue_creat_info.queueFamilyIndex = ((uint32_t*)&(app->queue_family))[n];
+    	queue_creat_info.queueCount = 1;
+    	queue_creat_info.pQueuePriorities = &queuePriority;
+		queue_creat_info_arr[n] = queue_creat_info;
+	}
 
 	creat_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	creat_info.pQueueCreateInfos = &queue_creat_info;
-	creat_info.queueCreateInfoCount = 1;
+	creat_info.pQueueCreateInfos = queue_creat_info_arr;
+	creat_info.queueCreateInfoCount = queue_count;
 
 	creat_info.pEnabledFeatures = &device_features;
 	creat_info.enabledExtensionCount = 0;
@@ -431,14 +465,16 @@ static int create_logical_device(struct Application *app) {
 	creat_info.ppEnabledLayerNames = app->enabled_layers;
 
 	ret = vkCreateDevice(app->physical_device, &creat_info, NULL, &app->device);
+	free(queue_creat_info_arr);
 	if (ret != VK_SUCCESS) {
 		perr("Failed to create device: %i", ret);
 		return -1;
 	} else {
-		pinfo("Created logical device");
+		pdebug("Created logical device");
 	}
 
-	vkGetDeviceQueue(app->device, app->queue_family.graphics_family, 0, &app->graphics_queue);
+	vkGetDeviceQueue(app->device, app->queue_family.graphics, 0, &app->graphics_queue);
+	vkGetDeviceQueue(app->device, app->queue_family.present, 0, &app->present_queue);
 	return 0;
 }
 
@@ -462,6 +498,11 @@ struct Application *application_init(struct Config *config) {
 		perr("Failed to init Vulkan");
 		goto vulkan_err;
 	}
+	/* Create drawing surface. */
+	if (create_surface(app) != 0) {
+		perr("Failed to create surface");
+		goto surface_err;
+	}
 	/* Pick physical device. */
 	if (pick_physical_device(app) != 0) {
 		perr("Failed to pick physical device");
@@ -477,6 +518,8 @@ struct Application *application_init(struct Config *config) {
 
 logi_device_err:
 phys_device_err:
+	vkDestroySurfaceKHR(app->instance, app->surface, NULL);
+surface_err:
 	vkDestroyInstance(app->instance, NULL);
 vulkan_err:
 	glfwDestroyWindow(app->window);
@@ -494,6 +537,7 @@ void application_free(struct Application *app) {
 	/* Queues are auto removed. */
 	vkDestroyDevice(app->device, NULL);
 	/* Physical device is auto removed. */
+	vkDestroySurfaceKHR(app->instance, app->surface, NULL);
 	vkDestroyInstance(app->instance, NULL);
 	free(app->enabled_extensions);
 	free(app->enabled_layers);
