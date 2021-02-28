@@ -32,7 +32,7 @@ int main() {
 		.requested_extensions = requested_extensions,
 		.requested_layer_count = sizeof(requested_validation_layers)/sizeof(*requested_validation_layers),
 		.requested_layers = requested_validation_layers,
-		.device_pick = -1
+		.device_pick = 1
 	};
 
 	struct Application *app = application_init(&conf);

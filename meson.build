@@ -17,6 +17,7 @@ executable(
 	[
 		'src/main.c',
 		'src/application.c',
+		'src/application_init.c'
 	],
 	dependencies: [
 		vulkanDep,
