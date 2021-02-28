@@ -366,6 +366,8 @@ static void get_device_features(struct Application *app, VkPhysicalDevice device
 			df->queue_family.present = n;
 		}
 	}
+
+	free(queue_properties);
 }
 static int pick_physical_device(struct Application *app) {
 	VkResult ret = 0;
@@ -443,21 +445,42 @@ static int create_logical_device(struct Application *app) {
 	VkPhysicalDeviceFeatures device_features = {0};
 	VkDeviceCreateInfo creat_info = {0};
 	float queuePriority = 1.0f;
+	uint32_t actual_queue_count = 0;
 
-	const uint32_t queue_count = 2;
-	queue_creat_info_arr = calloc(queue_count, sizeof(*queue_creat_info_arr));
-	for (uint32_t n = 0; n < queue_count; ++n) {
-		VkDeviceQueueCreateInfo queue_creat_info = {0};
-		queue_creat_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    	queue_creat_info.queueFamilyIndex = ((uint32_t*)&(app->queue_family))[n];
-    	queue_creat_info.queueCount = 1;
-    	queue_creat_info.pQueuePriorities = &queuePriority;
-		queue_creat_info_arr[n] = queue_creat_info;
+	{
+		const uint32_t queue_count = sizeof(app->queue_family)/sizeof(uint32_t);
+		uint32_t *prev_queue = calloc(queue_count, sizeof(*prev_queue));
+		queue_creat_info_arr = calloc(queue_count, sizeof(*queue_creat_info_arr));
+		uint32_t prev_queue_count = 0;
+		for (uint32_t n = 0; n < queue_count; ++n) {
+			const uint32_t index = ((uint32_t*)&(app->queue_family))[n];
+			/* Check for duplicates. */
+			for (uint32_t i = 0; i < prev_queue_count; ++i) {
+				if (prev_queue[i] == index) {
+					goto continue_outer;
+				}
+			}
+			prev_queue[prev_queue_count++] = index;
+			++actual_queue_count;
+
+			/* Fill info. */
+			VkDeviceQueueCreateInfo queue_creat_info = {0};
+			queue_creat_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    		queue_creat_info.queueFamilyIndex = ((uint32_t*)&(app->queue_family))[n];
+    		queue_creat_info.queueCount = 1;
+    		queue_creat_info.pQueuePriorities = &queuePriority;
+			queue_creat_info_arr[n] = queue_creat_info;
+
+		continue_outer:
+			continue; /* Not actually needed. */
+		}
+		free(prev_queue);
 	}
+	pdebug("Created %" PRIu32 " queues", actual_queue_count);
 
 	creat_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	creat_info.pQueueCreateInfos = queue_creat_info_arr;
-	creat_info.queueCreateInfoCount = queue_count;
+	creat_info.queueCreateInfoCount = actual_queue_count;
 
 	creat_info.pEnabledFeatures = &device_features;
 	creat_info.enabledExtensionCount = 0;
