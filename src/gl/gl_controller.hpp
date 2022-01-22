@@ -1,5 +1,5 @@
-#ifndef GL_CONTROL_HPP
-#define GL_CONTROL_HPP
+#ifndef GL_CONTROLLER
+#define GL_CONTROLLER
 #include <memory>
 
 #include "gl.hpp"
@@ -18,24 +18,28 @@ namespace hwfractal {
 		class gl_controller : public interfaces::core_controller {
 		private:
 			std::map<int, bool> _keysdown;
-		
+
 			/* Uniforms (all). */
 			bool _use_double = _config->get("GL_USE_DOUBLE") == "YES" ? 1 : 0;
 			bool _use_dynitr = _config->get("GL_USE_DYNITR") == "YES" ? 1 : 0;
+			bool _use_cvar = _config->get("GL_USE_CVAR") == "YES" ? 1 : 0;
 			glm::vec2 _u_resolution {0.f};
-			GLint _u_iter_max = _use_dynitr ? atoi(_config->get("GL_DYNITR_MIN").c_str()) : 2000;
+			int32_t _u_iter_max = _use_dynitr ? atoi(_config->get("GL_DYNITR_MIN").c_str()) : atoi(_config->get("GL_MAXITR").c_str());
 			bool changed;
 
 			GLuint _u_scale_id = 0;
 			GLuint _u_pan_id = 0;
 			GLuint _u_resolution_id = 0;
 			GLuint _u_iter_max_id = 0;
+			GLuint _u_c_id = 0; // Julia set
 			/* Uniforms (float). */
 			float _u_scale = 0.005267f;
 			glm::vec2 _u_pan {0.f};
+			glm::vec2 _u_c {0.7f, 0.27f}; // Julia set
 			/* Uniforms (double). */
 			double _u_scale_d = 0.005267;
 			glm::dvec2 _u_pan_d {0.};
+			glm::dvec2 _u_c_d {0.7, 0.27}; // Julia set
 
 			/* OpenGL stuff. */
 			GLFWwindow *_window = NULL;
@@ -54,4 +58,4 @@ namespace hwfractal {
 	}
 }
 
-#endif
+#endif /* GL_CONTROLLER */

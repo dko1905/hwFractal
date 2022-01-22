@@ -20,6 +20,21 @@ $ meson compile -C builddir
 ### Running
 Run `builddir/hwfractal`
 
+Keymap:
+
+| **Key** | **Action**           |
+|---------|----------------------|
+| W       | Up                   |
+| A       | Left                 |
+| S       | Down                 |
+| D       | Right                |
+| Z       | Zoom in              |
+| X       | Zoom out             |
+| C       | Increment C1 (Julia) |
+| V       | Decrement C1 (Julia) |
+| N       | Increment C2 (Julia) |
+| M       | Decrement C2 (Julia) |
+
 ## Todo
 - [X] Write README.md.
 - [X] Basic project structure, including build system.
@@ -31,6 +46,8 @@ Run `builddir/hwfractal`
 - [X] Actual mandelbrot shader.
 - [X] Max iteration uniform.
 - [X] Dynamic iteration, aka do frames with lower iteration and then higher.
+- [X] Julia Set
+- [ ] Better FPS
 - [ ] Smart config defaulting.
 - [ ] Good key handling.
 - [ ] Dynamic shader switching.

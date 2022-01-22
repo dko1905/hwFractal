@@ -96,6 +96,8 @@ gl_controller::gl_controller(const std::shared_ptr<const config> &config) : core
 
 	this->_u_iter_max_id = glGetUniformLocation(this->_program_id, "u_iter_max");
 	this->_u_scale_id = glGetUniformLocation(this->_program_id, "u_scale");
+	if (this->_use_cvar)
+		this->_u_c_id = glGetUniformLocation(this->_program_id, "u_c");
 	this->_u_pan_id = glGetUniformLocation(this->_program_id, "u_pan");
 	this->_u_resolution_id = glGetUniformLocation(this->_program_id, "u_resolution");
 	if (this->_u_scale_id < 0 || this->_u_pan_id < 0 || this->_u_resolution_id < 0) {
@@ -130,9 +132,13 @@ void gl_controller::render() const {
 	if (this->_use_double) {
 		glUniform1d(this->_u_scale_id, this->_u_scale_d);
 		glUniform2dv(this->_u_pan_id, 1, &this->_u_pan_d[0]);
+		if (this->_use_cvar)
+			glUniform2dv(this->_u_c_id, 1, &this->_u_c_d[0]);
 	} else {
 		glUniform1f(this->_u_scale_id, this->_u_scale);
 		glUniform2fv(this->_u_pan_id, 1, &this->_u_pan[0]);
+		if (this->_use_cvar)
+			glUniform2fv(this->_u_c_id, 1, &this->_u_c[0]);
 	}
 
 	/* Apply attributes. */
@@ -193,6 +199,30 @@ void gl_controller::proc_movement() {
 			this->_u_scale_d = _u_scale_d + (0.01 * _u_scale_d);
 		else
 			this->_u_scale = _u_scale + (0.01f * _u_scale);
+	} else if (this->keydown(GLFW_KEY_C)) {
+		changed = true;
+		if (this->_use_double)
+			this->_u_c_d.x = _u_c_d.x + (0.003 * _u_c_d.x);
+		else
+			this->_u_c.x = _u_c.x + (0.003 * _u_c.x);
+	} else if (this->keydown(GLFW_KEY_V)) {
+		changed = true;
+		if (this->_use_double)
+			this->_u_c_d.x = _u_c_d.x - (0.003 * _u_c_d.x);
+		else
+			this->_u_c.x = _u_c.x - (0.003 * _u_c.x);
+	} else if (this->keydown(GLFW_KEY_N)) {
+		changed = true;
+		if (this->_use_double)
+			this->_u_c_d.y = _u_c_d.y + (0.003 * _u_c_d.y);
+		else
+			this->_u_c.y = _u_c.y + (0.003 * _u_c.y);
+	} else if (this->keydown(GLFW_KEY_M)) {
+		changed = true;
+		if (this->_use_double)
+			this->_u_c_d.y = _u_c_d.y - (0.003 * _u_c_d.y);
+		else
+			this->_u_c.y = _u_c.y - (0.003 * _u_c.y);
 	}
 
 	if (_use_dynitr) {

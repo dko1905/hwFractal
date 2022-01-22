@@ -12,8 +12,9 @@ config::config(const std::string &config_path) {
 	std::string line, key;
 
 	while (std::getline(in, line)) {
+		if (line.size() > 0 && line[0] == '#') continue;
 		size_t position = line.find("=");
-		
+
 		key = line.substr(0, position);
 		line.erase(0, position + std::string("=").length());
 
@@ -24,10 +25,11 @@ config::config(const std::string &config_path) {
 config::config(const std::string &&config_path) {
 	std::ifstream in(config_path, std::ios::in);
 	std::string line, key;
-	
+
 	while (std::getline(in, line)) {
+		if (line.size() > 0 && line[0] == '#') continue;
 		size_t position = line.find("=");
-		
+
 		key = line.substr(0, position);
 		line.erase(0, position + std::string("=").length());
 
