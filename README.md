@@ -47,7 +47,7 @@ Keymap:
 - [X] Max iteration uniform.
 - [X] Dynamic iteration, aka do frames with lower iteration and then higher.
 - [X] Julia Set
-- [ ] Better FPS
+- [X] Better FPS
 - [ ] Smart config defaulting.
 - [ ] Good key handling.
 - [ ] Dynamic shader switching.

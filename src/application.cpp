@@ -5,6 +5,8 @@
 
 #include "application.hpp"
 
+#include <chrono>
+
 using namespace hwfractal;
 
 application::application(const std::shared_ptr<const config> &config) {
@@ -12,20 +14,24 @@ application::application(const std::shared_ptr<const config> &config) {
 	this->_core_controller = std::make_unique<gl::gl_controller>(config);
 
 	int exit = 0;
-	std::size_t frames = 0;
-	double lastTime = this->_core_controller->get_time();
+	auto render_begin = std::chrono::high_resolution_clock::now();
+	auto render_end = std::chrono::high_resolution_clock::now();
+	auto last_print = std::chrono::high_resolution_clock::now();
 	do {
-		double currentTime = this->_core_controller->get_time();
-		frames++;
-		/* Print fps once a second. */
-		if (currentTime - lastTime >= 0.25) {
-			printer::info("MS/FRAME: " + std::to_string(250.0/double(frames)) + " ms FPS: " + std::to_string(double(frames)/0.25));
-			frames = 0;
-			lastTime += 0.25;
+		auto now = std::chrono::high_resolution_clock::now();
+		auto dif = now - last_print;
+		if (dif > std::chrono::milliseconds(25)) {
+			auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(render_end - render_begin);
+			auto fps = 1000.0 / ms.count();
+			printer::info("MS/FRAME: " + std::to_string(ms.count()) + " " +
+			              "FPS: " + std::to_string(fps));
+			last_print = std::chrono::high_resolution_clock::now();
 		}
 
+		render_begin = std::chrono::high_resolution_clock::now();
 		this->_core_controller->proc_movement();
 		this->_core_controller->render();
+		render_end = std::chrono::high_resolution_clock::now();
 		exit = this->_core_controller->poll();
 	} while (
 		this->_core_controller->keydown(GLFW_KEY_Q) != true &&
