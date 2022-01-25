@@ -1,11 +1,12 @@
-#ifndef APPLICATION_H
-#define APPLICAITON_H
+#ifndef APP_H
+#define APP_H
+#include <talloc.h>
+
 #include "config.h"
 
 struct Application;
+struct Application *Application_init(const struct Config *config);
+void Application_main(struct Application *app);
+void Application_free(struct Application *app);
 
-struct Application *application_init(struct Config *config);
-void application_free(struct Application *application);
-void application_main(struct Application *application);
-
-#endif
+#endif /* APP */

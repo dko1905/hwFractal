@@ -9,17 +9,21 @@ project(
 	],
 )
 
-vulkanDep = dependency('vulkan')
-glfwDep = dependency('glfw3', version: '>= 3')
+sdl2Dep = dependency('sdl2')
+tallocDep = dependency('talloc')
+# glfwDep = dependency('glfw3', version: '>= 3')
+# vulkanDep = dependency('vulkan')
 
 executable(
 	'hwfractal',
 	[
 		'src/main.c',
 		'src/application.c',
+		'src/lib/log.c',
 	],
 	dependencies: [
-		vulkanDep,
-		glfwDep
+		sdl2Dep,
+		tallocDep
 	],
+	c_args: ['-DLOG_USE_COLOR']
 )
