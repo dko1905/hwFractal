@@ -429,10 +429,11 @@ static inline struct talloc_chunk *talloc_chunk_from_ptr(const void *ptr)
 	const char *pp = (const char *)ptr;
 	struct talloc_chunk *tc = discard_const_p(struct talloc_chunk, pp - TC_HDR_SIZE);
 	if (unlikely((tc->flags & (TALLOC_FLAG_FREE | ~0xF)) != TALLOC_MAGIC)) {
-		if ((tc->flags & (~0xFFF)) == TALLOC_MAGIC_BASE) {
-			talloc_abort_magic(tc->flags & (~0xF));
-			return NULL;
-		}
+		// Compiler warning: Always evaluates to false.
+		// if ((tc->flags & (~0xFFF)) == TALLOC_MAGIC_BASE) {
+		// 	talloc_abort_magic(tc->flags & (~0xF));
+		// 	return NULL;
+		// }
 
 		if (tc->flags & TALLOC_FLAG_FREE) {
 			talloc_log("talloc: access after free error - first free may be at %s\n", tc->name);
