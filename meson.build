@@ -10,7 +10,7 @@ project(
 )
 
 sdl2Dep = dependency('sdl2')
-tallocDep = dependency('talloc')
+# tallocDep = dependency('talloc')
 # glfwDep = dependency('glfw3', version: '>= 3')
 # vulkanDep = dependency('vulkan')
 
@@ -20,10 +20,10 @@ executable(
 		'src/main.c',
 		'src/application.c',
 		'src/lib/log.c',
+		'src/lib/talloc/talloc.c'
 	],
 	dependencies: [
 		sdl2Dep,
-		tallocDep
 	],
 	c_args: ['-DLOG_USE_COLOR']
 )

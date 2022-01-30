@@ -1,6 +1,6 @@
 #ifndef APP_H
 #define APP_H
-#include <talloc.h>
+#include "lib/talloc/talloc.h"
 
 #include "config.h"
 
