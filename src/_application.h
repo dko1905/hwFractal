@@ -1,6 +1,6 @@
 #ifndef APP_H
 #define APP_H
-#include <talloc.h>
+#include "talloc.h"
 #include <SDL2/SDL.h>
 
 #include "SDL_surface.h"
