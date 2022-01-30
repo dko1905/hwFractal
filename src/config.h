@@ -5,13 +5,15 @@
 
 struct Config {
 	/* Talloc options: */
-	bool logErrorsToStderr;
-	uint8_t reportMemoryUsage; // 0 - no, 1 - yes, 2 - full
+	bool talloc_log_err;
+	uint8_t talloc_report_mem_usage; // 0 - no, 1 - yes, 2 - full
 
 	/* SDL2 options: */
-	const uint32_t width;
-	const uint32_t height;
-	const char *title;
+	uint32_t width;
+	uint32_t height;
+	char *title;
+	uint32_t fps;
+	uint64_t update_timeout;
 };
 
 #endif
