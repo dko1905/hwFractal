@@ -4,6 +4,6 @@ UseTab: Always
 BreakBeforeBraces: Linux
 AllowShortIfStatementsOnASingleLine: false
 IndentCaseLabels: false
-ColumnLimit: 88
+ColumnLimit: 98
 AlignTrailingComments: true
 SpacesBeforeTrailingComments: 2

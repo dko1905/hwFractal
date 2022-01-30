@@ -162,10 +162,10 @@ static int update_events(struct Application *app)
 		case SDL_WINDOWEVENT:
 			if (app->event.window.event == SDL_WINDOWEVENT_RESIZED) {
 				log_debug("Received resize event, updating screen");
-				set_sleep_mode(app, false);
 				set_update_screen(app, true);
                         } else {
-				log_debug("Recieved unknown window event, updating screen");
+				log_debug("Received unknown window event, updating screen");
+				set_update_screen(app, true);
 			}
 			break;
 		case SDL_QUIT:
