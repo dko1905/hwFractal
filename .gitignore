@@ -1,5 +1,6 @@
-# meson
-builddir/
+# zig
+zig-cache
+zig-out
 # etc
 .vscode/
 # clangd
